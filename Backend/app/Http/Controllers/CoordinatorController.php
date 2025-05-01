@@ -67,8 +67,7 @@ class CoordinatorController extends Controller
     public function addTrack(Request $request)
     {
         $validatedData = $request->validate([
-
-            'track_id' => 'required',
+            'track_id' => 'required|unique:track,track_id',  // Ensure track_id is unique
             'track_name' => 'required|string',
             'description' => 'required|string',
         ]);
@@ -76,12 +75,12 @@ class CoordinatorController extends Controller
         DB::beginTransaction();
 
         try {
+            // Proceed to create the track with the provided track_id
             $track = Tracks::create([
                 'track_id' => $validatedData['track_id'],
                 'track_name' => $validatedData['track_name'],
                 'description' => $validatedData['description'],
             ]);
-
 
             DB::commit();
 
@@ -91,6 +90,7 @@ class CoordinatorController extends Controller
             return response()->json(['error' => 'Failed to save Track. ' . $e->getMessage()], 500);
         }
     }
+
 
     //Show Track
     public function showTracks()
@@ -249,27 +249,25 @@ class CoordinatorController extends Controller
             'coordinator_id' => 'required',
             'password' => 'required|string',
         ]);
-    
+
         try {
-    
+
             $coordinator = Coordinator::where('coordinator_id', $validatedData['coordinator_id'])->first();
-    
+
             if (!$coordinator) {
                 return response()->json(['error' => 'Coordinator not found.'], 404);
             }
-    
+
             if (!Hash::check($validatedData['password'], $coordinator->password)) {
                 return response()->json(['error' => 'Invalid password.'], 401);
             }
-    
+
             return response()->json([
                 'message' => 'Login successful',
                 'coordinator' => $coordinator,
             ], 200);
-    
         } catch (\Exception $e) {
             return response()->json(['error' => 'Login failed. ' . $e->getMessage()], 500);
         }
     }
-    
 }

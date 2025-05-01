@@ -12,8 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('track', function (Blueprint $table) {
-            $table->id();
-            $table->integer('track_id')->unique();
+            $table->integer('track_id')->unique()->primary();
             $table->string('track_name');
             $table->string('description');
             $table->timestamps();
