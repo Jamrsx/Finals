@@ -1,0 +1,28 @@
+/* Whole dashboard layout */
+.dashboard-container {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    background-color: #e0f2fe; /* Light blue background */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  /* Main content area */
+  .dashboard-content {
+    flex: 1;
+    padding: 40px;
+    background-color: #ffffff; /* White background */
+    color: #1e3a8a; /* Dark blue text */
+    overflow-y: auto; /* Allows scrolling if content grows */
+  }
+  
+  /* Heading */
+  .dashboard-content h1 {
+    font-size: 32px;
+    color: #2563eb; /* Bright blue */
+    margin-bottom: 20px;
+  }
+  
