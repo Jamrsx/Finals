@@ -25,9 +25,9 @@ class StudentDetails extends Model
     }
 
     public function section()
-{
-    return $this->hasOne(Section::class, 'student_id', 'studentId');
-}
+    {
+        return $this->hasOne(Section::class, 'student_id', 'student_id');
+    }
 
 
     

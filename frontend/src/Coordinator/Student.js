@@ -8,7 +8,6 @@ const Student = () => {
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({
     student_id: '',
-    password: '',
     lname: '',
     fname: '',
     mname: '',
@@ -34,10 +33,17 @@ const Student = () => {
   const fetchStudents = async () => {
     try {
       const res = await axios.get(`${apiUrl}/showStudents`);
+      console.log('Raw API Response:', res.data); // Debug the raw response
+
       if (res.data && res.data.students) {
         // Transform the data to match our table structure
         const formattedStudents = res.data.students.map(student => {
-          console.log('Student data:', student); // Debug log
+          // Debug the student object
+          console.log('Raw Student Data:', student);
+
+          // Get section data with fallback
+          const sectionData = student.section || {};
+
           return {
             student_id: student.student_id,
             lname: student.lname,
@@ -47,15 +53,17 @@ const Student = () => {
             email: student.email,
             Phone_number: student.Phone_number,
             gender: student.gender,
-            Course: student.section?.Course || '',
-            yearlevel: student.section?.yearlevel || '',
-            section: student.section?.section || '',
-            Track: student.section?.Track || '',
+            // Section data with fallback values
+            Course: sectionData.Course || '',
+            yearlevel: sectionData.yearlevel || '',
+            section: sectionData.section || '',
+            Track: sectionData.Track || '',
             status: student.status,
             account_status: student.account?.status || ''
           };
         });
-        console.log('Formatted students:', formattedStudents); // Debug log
+
+        console.log('Formatted Students:', formattedStudents); // Debug formatted data
         setStudents(formattedStudents);
         setError(null);
       } else {
@@ -110,7 +118,7 @@ const Student = () => {
         fetchStudents();
         setShowModal(false);
         setForm({
-          student_id: '', password: '', lname: '', fname: '', mname: '', suffix: '',
+          student_id: '', lname: '', fname: '', mname: '', suffix: '',
           email: '', Phone_number: '', gender: '', Course: '', yearlevel: '', section: '', Track: ''
         });
       }
@@ -185,7 +193,6 @@ const Student = () => {
               <h3>Add New Student</h3>
               <form onSubmit={handleSubmit}>
                 <input name="student_id" value={form.student_id} onChange={handleChange} placeholder="Student ID" required />
-                <input name="password" type="password" value={form.password} onChange={handleChange} placeholder="Password" required />
                 <input name="lname" value={form.lname} onChange={handleChange} placeholder="Last Name" required />
                 <input name="fname" value={form.fname} onChange={handleChange} placeholder="First Name" required />
                 <input name="mname" value={form.mname} onChange={handleChange} placeholder="Middle Name" />
@@ -200,7 +207,7 @@ const Student = () => {
                 <input name="Course" value={form.Course} onChange={handleChange} placeholder="Course" required />
                 <input name="yearlevel" value={form.yearlevel} onChange={handleChange} placeholder="Year Level" required />
                 <input name="section" value={form.section} onChange={handleChange} placeholder="Section" required />
-                <input name="Track" value={form.Track} onChange={handleChange} placeholder="Track" />
+                {/* <input name="Track" value={form.Track} onChange={handleChange} placeholder="Track" /> */}
                 <button type="submit">Add Student</button>
               </form>
             </div>

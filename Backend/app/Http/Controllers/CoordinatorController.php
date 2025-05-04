@@ -20,7 +20,6 @@ class CoordinatorController extends Controller
         // Validate input
         $validatedData = $request->validate([
             'student_id' => 'required|unique:student_acc,student_id',
-            'password' => 'required|min:6',
             'lname' => 'required|string',
             'fname' => 'required|string',
             'mname' => 'nullable|string',
@@ -37,10 +36,10 @@ class CoordinatorController extends Controller
         DB::beginTransaction();
 
         try {
-            // Create student account
+            // Create student account with default password
             $studentAcc = StudentAcc::create([
                 'student_id' => $validatedData['student_id'],
-                'password' => Hash::make($validatedData['password']),
+                'password' => Hash::make('123456'), // Default password
                 'status' => '1',
             ]);
 
@@ -70,7 +69,7 @@ class CoordinatorController extends Controller
             DB::commit();
 
             return response()->json([
-                'message' => 'Student successfully added.',
+                'message' => 'Student successfully added with default password: 123456',
                 'data' => [
                     'student_acc' => $studentAcc,
                     'student_details' => $studentDetails,
@@ -86,10 +85,22 @@ class CoordinatorController extends Controller
     public function getAllStudents()
     {
         try {
+            // First, let's check if we have any sections in the database
+            $sections = Section::all();
+            // \Log::info('All sections in database:', ['sections' => $sections->toArray()]);
+
             // Fetch all student details with related section and account info
             $students = StudentDetails::with(['section', 'account'])
                 ->get()
                 ->map(function ($student) {
+                    // Debug the student and its relationships
+                    // \Log::info('Student with relationships:', [
+                    //     'student_id' => $student->student_id,
+                    //     'has_section' => $student->section ? 'yes' : 'no',
+                    //     'section_data' => $student->section ? $student->section->toArray() : null,
+                    //     'raw_student' => $student->toArray()
+                    // ]);
+
                     return [
                         'student_id' => $student->student_id,
                         'lname' => $student->lname,
@@ -100,7 +111,6 @@ class CoordinatorController extends Controller
                         'Phone_number' => $student->Phone_number,
                         'gender' => $student->gender,
                         'status' => $student->status,
-
                         'section' => $student->section ? [
                             'Course' => $student->section->Course,
                             'yearlevel' => $student->section->yearlevel,
@@ -108,15 +118,21 @@ class CoordinatorController extends Controller
                             'instructor' => $student->section->instructor,
                             'Track' => $student->section->Track,
                         ] : null,
-                        
                         'account' => $student->account ? [
                             'status' => $student->account->status,
                         ] : null,
                     ];
                 });
 
+            // Debug the final response
+            // \Log::info('Final students response:', ['students' => $students]);
+
             return response()->json(['students' => $students], 200);
         } catch (\Exception $e) {
+                // \Log::error('Error in getAllStudents:', [
+                //     'error' => $e->getMessage(),
+                //     'trace' => $e->getTraceAsString()
+                // ]);
             return response()->json([
                 'error' => 'Failed to retrieve students.',
                 'message' => $e->getMessage()
