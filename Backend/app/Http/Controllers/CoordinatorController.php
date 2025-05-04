@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Models\StudentDetails;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Section;
 
 class CoordinatorController extends Controller
 {
@@ -27,19 +28,23 @@ class CoordinatorController extends Controller
             'email' => 'required|email|unique:student_details,email',
             'Phone_number' => 'required|string',
             'gender' => 'required|string',
+            'Course' => 'required|string',
+            'yearlevel' => 'required|string',
+            'section' => 'required|string',
+            'Track' => 'nullable|string'
         ]);
 
         DB::beginTransaction();
 
         try {
-            //Create student account
+            // Create student account
             $studentAcc = StudentAcc::create([
                 'student_id' => $validatedData['student_id'],
                 'password' => Hash::make($validatedData['password']),
                 'status' => '1',
             ]);
 
-            //Create student details
+            // Create student details
             $studentDetails = StudentDetails::create([
                 'student_id' => $validatedData['student_id'],
                 'lname' => $validatedData['lname'],
@@ -52,14 +57,130 @@ class CoordinatorController extends Controller
                 'status' => '1',
             ]);
 
+            // Create section
+            $section = Section::create([
+                'student_id' => $validatedData['student_id'],
+                'Course' => $validatedData['Course'],
+                'yearlevel' => $validatedData['yearlevel'],
+                'section' => $validatedData['section'],
+                'instructor' => null,
+                'Track' => $validatedData['Track'] ?? null,
+            ]);
+
             DB::commit();
 
-            return response()->json(['message' => 'Student successfully added.'], 201);
+            return response()->json([
+                'message' => 'Student successfully added.',
+                'data' => [
+                    'student_acc' => $studentAcc,
+                    'student_details' => $studentDetails,
+                    'section' => $section
+                ]
+            ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['error' => 'Failed to save student. ' . $e->getMessage()], 500);
         }
     }
+
+    public function getAllStudents()
+    {
+        try {
+            // Fetch all student details with related section and account info
+            $students = StudentDetails::with(['section', 'account'])
+                ->get()
+                ->map(function ($student) {
+                    return [
+                        'student_id' => $student->student_id,
+                        'lname' => $student->lname,
+                        'fname' => $student->fname,
+                        'mname' => $student->mname,
+                        'suffix' => $student->suffix,
+                        'email' => $student->email,
+                        'Phone_number' => $student->Phone_number,
+                        'gender' => $student->gender,
+                        'status' => $student->status,
+
+                        'section' => $student->section ? [
+                            'Course' => $student->section->Course,
+                            'yearlevel' => $student->section->yearlevel,
+                            'section' => $student->section->section,
+                            'instructor' => $student->section->instructor,
+                            'Track' => $student->section->Track,
+                        ] : null,
+                        
+                        'account' => $student->account ? [
+                            'status' => $student->account->status,
+                        ] : null,
+                    ];
+                });
+
+            return response()->json(['students' => $students], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to retrieve students.',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function updateStudent(Request $request, $id)
+    {
+        // Validate input
+        $validatedData = $request->validate([
+            'lname' => 'required|string',
+            'fname' => 'required|string',
+            'mname' => 'nullable|string',
+            'suffix' => 'nullable|string',
+            'email' => 'required|email|unique:student_details,email,' . $id . ',student_id',
+            'Phone_number' => 'required|string',
+            'gender' => 'required|string',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $studentDetails = StudentDetails::where('student_id', $id)->first();
+
+            if (!$studentDetails) {
+                return response()->json(['error' => 'Student not found'], 404);
+            }
+
+            $studentDetails->update($validatedData);
+
+            DB::commit();
+            return response()->json(['message' => 'Student successfully updated.'], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Failed to update student. ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function deleteStudent($id)
+    {
+        DB::beginTransaction();
+
+        try {
+            $studentAcc = StudentAcc::where('student_id', $id)->first();
+            $studentDetails = StudentDetails::where('student_id', $id)->first();
+
+            if (!$studentAcc || !$studentDetails) {
+                return response()->json(['error' => 'Student not found'], 404);
+            }
+
+            $studentAcc->delete();
+            $studentDetails->delete();
+
+            DB::commit();
+            return response()->json(['message' => 'Student successfully deleted.'], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Failed to delete student. ' . $e->getMessage()], 500);
+        }
+    }
+
+
+
     //==============================END ADD STUDENT DETAILS AND ACCOUNT===============================
 
     //==============================ADD TRACK===============================

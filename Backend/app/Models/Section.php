@@ -14,7 +14,7 @@ class Section extends Model
         'yearlevel',
         'section',
         'instructor',
-        'track',
+        'Track',
     ];
 
 
@@ -25,7 +25,7 @@ class Section extends Model
     
     public function student()
     {
-        return $this->belongsTo(StudentDetails::class, 'student_id', 'studentId');
+        return $this->belongsTo(StudentDetails::class, 'student_id', 'student_id');
     }
     
 }

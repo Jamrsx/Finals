@@ -1,8 +1,9 @@
 <?php
 
-use App\Http\Controllers\AddCoordinator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AddCoordinator;
+use App\Http\Controllers\CsvImportController;
 use App\Http\Controllers\CoordinatorController;
 
 Route::get('/user', function (Request $request) {
@@ -14,6 +15,12 @@ Route::post('/coordinator/login', [CoordinatorController::class, 'loginCoordinat
 
 
 Route::post('/students', [CoordinatorController::class, 'storeStudent']);
+Route::put('/student/{id}', [CoordinatorController::class, 'updateStudent']);
+Route::delete('/student/{id}', [CoordinatorController::class, 'deleteStudent']);
+Route::get('/showStudents', [CoordinatorController::class, 'getAllStudents']);
+
+
+Route::post('/import-csv', [CsvImportController::class, 'import']);
 
 Route::post('/tracks', [CoordinatorController::class, 'addTrack']);
 Route::get('/ShowTracks', [CoordinatorController::class, 'showTracks']);
@@ -25,4 +32,4 @@ Route::get('/ShowInstructor/{id}', [CoordinatorController::class, 'showInstructo
 Route::put('/UpdateInstructor/{id}', [CoordinatorController::class, 'updateInstructor']);
 Route::delete('/DeleteInstructor/{id}', [CoordinatorController::class, 'deleteInstructor']);
 
-
+Route::get('/students', [CoordinatorController::class, 'showStudents']);

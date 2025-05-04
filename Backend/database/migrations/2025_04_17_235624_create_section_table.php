@@ -17,8 +17,8 @@ return new class extends Migration
             $table->string('Course');
             $table->string('yearlevel');
             $table->string('section');
-            $table->string('instructor');
-            $table->string('Track');
+            $table->string('instructor')->nullable();
+            $table->string('Track')->nullable();
             $table->timestamps();
 
             $table->foreign('student_id')
