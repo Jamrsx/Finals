@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Models\StudentDetails;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use App\Models\Section;
 
 class CoordinatorController extends Controller
@@ -17,68 +18,91 @@ class CoordinatorController extends Controller
     //==============================ADD STUDENT DETAILS AND ACCOUNT===============================
     public function storeStudent(Request $request)
     {
-        // Validate input
-        $validatedData = $request->validate([
-            'student_id' => 'required|unique:student_acc,student_id',
-            'lname' => 'required|string',
-            'fname' => 'required|string',
-            'mname' => 'nullable|string',
-            'suffix' => 'nullable|string',
-            'email' => 'required|email|unique:student_details,email',
-            'Phone_number' => 'required|string',
-            'gender' => 'required|string',
-            'Course' => 'required|string',
-            'yearlevel' => 'required|string',
-            'section' => 'required|string',
-            'Track' => 'nullable|string'
-        ]);
-
-        DB::beginTransaction();
-
         try {
-            // Create student account with default password
-            $studentAcc = StudentAcc::create([
-                'student_id' => $validatedData['student_id'],
-                'password' => Hash::make('123456'), // Default password
-                'status' => '1',
+            // Log the incoming request data
+            Log::info('Incoming student data:', $request->all());
+
+            // Validate input
+            $validatedData = $request->validate([
+                'student_id' => 'required|unique:student_acc,student_id',
+                'lname' => 'required|string',
+                'fname' => 'required|string',
+                'mname' => 'nullable|string',
+                'suffix' => 'nullable|string',
+                'email' => 'required|email|unique:student_details,email',
+                'Phone_number' => 'required|string',
+                'gender' => 'required|string',
+                'Course' => 'required|string',
+                'yearlevel' => 'required|string',
+                'section' => 'required|string',
+                'Track' => 'nullable|string'
             ]);
 
-            // Create student details
-            $studentDetails = StudentDetails::create([
-                'student_id' => $validatedData['student_id'],
-                'lname' => $validatedData['lname'],
-                'fname' => $validatedData['fname'],
-                'mname' => $validatedData['mname'],
-                'suffix' => $validatedData['suffix'],
-                'email' => $validatedData['email'],
-                'Phone_number' => $validatedData['Phone_number'],
-                'gender' => $validatedData['gender'],
-                'status' => '1',
-            ]);
+            Log::info('Validated data:', $validatedData);
 
-            // Create section
-            $section = Section::create([
-                'student_id' => $validatedData['student_id'],
-                'Course' => $validatedData['Course'],
-                'yearlevel' => $validatedData['yearlevel'],
-                'section' => $validatedData['section'],
-                'instructor' => null,
-                'Track' => $validatedData['Track'] ?? null,
-            ]);
+            DB::beginTransaction();
 
-            DB::commit();
+            try {
+                // Create student account with default password
+                $studentAcc = StudentAcc::create([
+                    'student_id' => $validatedData['student_id'],
+                    'password' => Hash::make('123456'), // Default password
+                    'status' => '1',
+                ]);
 
+                // Create student details
+                $studentDetails = StudentDetails::create([
+                    'student_id' => $validatedData['student_id'],
+                    'lname' => $validatedData['lname'],
+                    'fname' => $validatedData['fname'],
+                    'mname' => $validatedData['mname'],
+                    'suffix' => $validatedData['suffix'],
+                    'email' => $validatedData['email'],
+                    'Phone_number' => $validatedData['Phone_number'],
+                    'gender' => $validatedData['gender'],
+                    'status' => '1',
+                ]);
+
+                // Create section
+                $section = Section::create([
+                    'student_id' => $validatedData['student_id'],
+                    'Course' => $validatedData['Course'],
+                    'yearlevel' => $validatedData['yearlevel'],
+                    'section' => $validatedData['section'],
+                    'instructor' => null,
+                    'Track' => $validatedData['Track'] ?? null,
+                ]);
+
+                DB::commit();
+
+                return response()->json([
+                    'message' => 'Student successfully added with default password: 123456',
+                    'data' => [
+                        'student_acc' => $studentAcc,
+                        'student_details' => $studentDetails,
+                        'section' => $section
+                    ]
+                ], 201);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Error creating student records: ' . $e->getMessage());
+                return response()->json([
+                    'error' => 'Failed to save student records',
+                    'details' => $e->getMessage()
+                ], 500);
+            }
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation error: ' . json_encode($e->errors()));
             return response()->json([
-                'message' => 'Student successfully added with default password: 123456',
-                'data' => [
-                    'student_acc' => $studentAcc,
-                    'student_details' => $studentDetails,
-                    'section' => $section
-                ]
-            ], 201);
+                'error' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['error' => 'Failed to save student. ' . $e->getMessage()], 500);
+            Log::error('Unexpected error: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'An unexpected error occurred',
+                'details' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -87,11 +111,24 @@ class CoordinatorController extends Controller
         try {
             $perPage = $request->input('per_page', 10);
             $page = $request->input('page', 1);
+            $search = $request->input('search', '');
 
-            // Get paginated students with their relationships
-            $students = StudentDetails::with(['account', 'section'])
-                ->orderBy('created_at', 'desc')
-                ->paginate($perPage, ['*'], 'page', $page);
+            // Build the query
+            $query = StudentDetails::with(['account', 'section'])
+                ->orderBy('created_at', 'desc');
+
+            // Add search conditions if search term is provided
+            if (!empty($search)) {
+                $query->where(function($q) use ($search) {
+                    $q->where('lname', 'like', '%' . $search . '%')
+                      ->orWhere('student_id', 'like', '%' . $search . '%')
+                      ->orWhere('fname', 'like', '%' . $search . '%')
+                      ->orWhere('email', 'like', '%' . $search . '%');
+                });
+            }
+
+            // Get paginated students
+            $students = $query->paginate($perPage, ['*'], 'page', $page);
 
             // Format the student data
             $formattedStudents = $students->map(function ($student) {
@@ -130,39 +167,93 @@ class CoordinatorController extends Controller
                 ]
             ]);
         } catch (\Exception $e) {
+            Log::error('Error fetching students: ' . $e->getMessage());
             return response()->json(['error' => 'Failed to fetch students: ' . $e->getMessage()], 500);
         }
     }
 
     public function updateStudent(Request $request, $id)
     {
-        // Validate input
-        $validatedData = $request->validate([
-            'lname' => 'required|string',
-            'fname' => 'required|string',
-            'mname' => 'nullable|string',
-            'suffix' => 'nullable|string',
-            'email' => 'required|email|unique:student_details,email,' . $id . ',student_id',
-            'Phone_number' => 'required|string',
-            'gender' => 'required|string',
-        ]);
-
-        DB::beginTransaction();
-
         try {
-            $studentDetails = StudentDetails::where('student_id', $id)->first();
+            // Log the incoming request data
+            Log::info('Incoming update data:', $request->all());
 
-            if (!$studentDetails) {
-                return response()->json(['error' => 'Student not found'], 404);
+            // Validate input
+            $validatedData = $request->validate([
+                'lname' => 'required|string',
+                'fname' => 'required|string',
+                'mname' => 'nullable|string',
+                'suffix' => 'nullable|string',
+                'email' => 'required|email|unique:student_details,email,' . $id . ',student_id',
+                'Phone_number' => 'required|string',
+                'gender' => 'required|string',
+                'Course' => 'required|string',
+                'yearlevel' => 'required|string',
+                'section' => 'required|string',
+                'Track' => 'nullable|string'
+            ]);
+
+            Log::info('Validated update data:', $validatedData);
+
+            DB::beginTransaction();
+
+            try {
+                // Update student details
+                $studentDetails = StudentDetails::where('student_id', $id)->first();
+                if (!$studentDetails) {
+                    return response()->json(['error' => 'Student not found'], 404);
+                }
+
+                $studentDetails->update([
+                    'lname' => $validatedData['lname'],
+                    'fname' => $validatedData['fname'],
+                    'mname' => $validatedData['mname'],
+                    'suffix' => $validatedData['suffix'],
+                    'email' => $validatedData['email'],
+                    'Phone_number' => $validatedData['Phone_number'],
+                    'gender' => $validatedData['gender']
+                ]);
+
+                // Update section
+                $section = Section::where('student_id', $id)->first();
+                if ($section) {
+                    $section->update([
+                        'Course' => $validatedData['Course'],
+                        'yearlevel' => $validatedData['yearlevel'],
+                        'section' => $validatedData['section'],
+                        'Track' => $validatedData['Track'] ?? null
+                    ]);
+                }
+
+                DB::commit();
+
+                return response()->json([
+                    'message' => 'Student successfully updated',
+                    'data' => [
+                        'student_details' => $studentDetails,
+                        'section' => $section
+                    ]
+                ], 200);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Error updating student records: ' . $e->getMessage());
+                return response()->json([
+                    'error' => 'Failed to update student records',
+                    'details' => $e->getMessage()
+                ], 500);
             }
-
-            $studentDetails->update($validatedData);
-
-            DB::commit();
-            return response()->json(['message' => 'Student successfully updated.'], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation error: ' . json_encode($e->errors()));
+            return response()->json([
+                'error' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['error' => 'Failed to update student. ' . $e->getMessage()], 500);
+            Log::error('Unexpected error: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'An unexpected error occurred',
+                'details' => $e->getMessage()
+            ], 500);
         }
     }
 

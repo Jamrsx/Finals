@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Sidebar from '../Coordinator/components/sidebar';
+import AddStudentModal from '../Coordinator/components/AddStudentModal';
+import UpdateStudentModal from '../Coordinator/components/UpdateStudentModal';
 import { processCSV } from '../utils/csvProcessor';
 import '../css/studentadd.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import Swal from 'sweetalert2';
 
 const Student = () => {
   const [students, setStudents] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
   const [isImporting, setIsImporting] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -15,30 +20,25 @@ const Student = () => {
   const [importStatus, setImportStatus] = useState(null);
   const [file, setFile] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [form, setForm] = useState({
-    student_id: '',
-    lname: '',
-    fname: '',
-    mname: '',
-    suffix: '',
-    email: '',
-    Phone_number: '',
-    gender: '',
-    Course: '',
-    yearlevel: '',
-    section: '',
-    Track: ''
-  });
 
   const apiUrl = 'http://localhost:8000/api';
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  useEffect(() => {
     fetchStudents();
-  }, [currentPage, itemsPerPage]);
+  }, [currentPage, itemsPerPage, debouncedSearchTerm]);
 
   const fetchStudents = async () => {
     setIsLoading(true);
@@ -46,7 +46,8 @@ const Student = () => {
       const res = await axios.get(`${apiUrl}/showStudents`, {
         params: {
           page: currentPage,
-          per_page: itemsPerPage
+          per_page: itemsPerPage,
+          search: debouncedSearchTerm
         }
       });
       
@@ -84,10 +85,6 @@ const Student = () => {
     }
   };
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
@@ -105,7 +102,6 @@ const Student = () => {
     setError(null);
     setImportStatus(null);
 
-    // Start the timer
     const startTime = Date.now();
     const timerInterval = setInterval(() => {
       const elapsed = Math.floor((Date.now() - startTime) / 1000);
@@ -113,7 +109,6 @@ const Student = () => {
     }, 1000);
 
     try {
-      // Process CSV on client side first
       const { students: processedStudents, errors } = await processCSV(file);
       
       if (errors.length > 0) {
@@ -124,20 +119,17 @@ const Student = () => {
         return;
       }
 
-      // Calculate total steps (upload + processing)
       const totalSteps = processedStudents.length;
       let completedSteps = 0;
 
-      // Send processed data to server
       const formData = new FormData();
       formData.append('file', file);
       formData.append('processed_data', JSON.stringify(processedStudents));
 
-      // Create a progress interval for processing phase
       const progressInterval = setInterval(() => {
         if (completedSteps < totalSteps) {
-          completedSteps += Math.ceil(totalSteps / 50); // Increment by 2% of total
-          const progress = Math.min(completedSteps / totalSteps, 0.99); // Cap at 99%
+          completedSteps += Math.ceil(totalSteps / 50);
+          const progress = Math.min(completedSteps / totalSteps, 0.99);
           setImportProgress(Math.round(progress * 100));
         }
       }, 100);
@@ -147,19 +139,16 @@ const Student = () => {
           'Content-Type': 'multipart/form-data',
         },
         onUploadProgress: (progressEvent) => {
-          // Update progress during upload phase (0-50%)
           if (progressEvent.loaded < progressEvent.total) {
             const uploadProgress = Math.round((progressEvent.loaded * 50) / progressEvent.total);
             setImportProgress(uploadProgress);
           } else {
-            // When upload is complete, start processing phase (50-100%)
             clearInterval(progressInterval);
             setImportProgress(50);
           }
         }
       });
 
-      // Clear the progress interval
       clearInterval(progressInterval);
       clearInterval(timerInterval);
 
@@ -190,56 +179,57 @@ const Student = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-    try {
-      const response = await axios.post(`${apiUrl}/students`, form);
-      if (response.data.message) {
-        fetchStudents();
-        setShowModal(false);
-        setForm({
-          student_id: '', lname: '', fname: '', mname: '', suffix: '',
-          email: '', Phone_number: '', gender: '', Course: '', yearlevel: '', section: '', Track: ''
-        });
-      }
-    } catch (err) {
-      console.error('Error adding student:', err.response?.data || err);
-      setError(err.response?.data?.error || 'Failed to add student');
-    }
-  };
-
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this student?')) {
-      try {
-        await axios.delete(`${apiUrl}/student/${id}`);
-        fetchStudents();
-      } catch (err) {
-        console.error('Error deleting student:', err);
-        setError('Failed to delete student');
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await axios.delete(`${apiUrl}/student/${id}`);
+          Swal.fire(
+            'Deleted!',
+            'Student has been deleted.',
+            'success'
+          ).then(() => {
+            fetchStudents();
+          });
+        } catch (err) {
+          console.error('Error deleting student:', err);
+          Swal.fire({
+            title: 'Error!',
+            text: 'Failed to delete student',
+            icon: 'error',
+            confirmButtonText: 'OK'
+          });
+        }
       }
-    }
+    });
   };
-
-  // Filter students based on search term
-  const filteredStudents = students.filter(student => 
-    student.lname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.student_id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1); // Reset to first page when searching
+    setCurrentPage(1);
   };
 
   const handleItemsPerPageChange = (e) => {
     const newItemsPerPage = Number(e.target.value);
     setItemsPerPage(newItemsPerPage);
-    setCurrentPage(1); // Reset to first page when changing items per page
+    setCurrentPage(1);
   };
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
+  };
+
+  const openUpdateModal = (student) => {
+    setSelectedStudent(student);
+    setShowUpdateModal(true);
   };
 
   return (
@@ -254,7 +244,6 @@ const Student = () => {
           </div>
         )}
 
-        {/* Search and Items Per Page */}
         <div className="table-controls">
           <div className="search-container">
             <input
@@ -278,7 +267,6 @@ const Student = () => {
           </div>
         </div>
 
-        {/* CSV Import Section */}
         <div className="import-section">
           <h3>Import Students from CSV</h3>
           <form onSubmit={handleImport} className="csv-form">
@@ -332,7 +320,6 @@ const Student = () => {
           )}
         </div>
 
-        {/* Add Student Button */}
         <button 
           className="btn btn-primary" 
           onClick={() => setShowModal(true)}
@@ -341,7 +328,6 @@ const Student = () => {
           Add New Student
         </button>
 
-        {/* Students Table */}
         <div className="table-container">
           <table className="student-table">
             <thead>
@@ -387,10 +373,10 @@ const Student = () => {
                       <div className="action-buttons">
                         <button 
                           className="action-btn update"
-                          onClick={() => alert('Update modal coming soon')}
+                          onClick={() => openUpdateModal(s)}
                           title="Update"
                         >
-                          <i className="fas fa-cog"></i>
+                          <i className="fas fa-edit"></i>
                         </button>
                         <button 
                           className="action-btn delete"
@@ -406,7 +392,7 @@ const Student = () => {
               ) : (
                 <tr>
                   <td colSpan="13" style={{ textAlign: 'center', padding: '2rem' }}>
-                    No students found.
+                    {searchTerm ? 'No students found matching your search.' : 'No students found.'}
                   </td>
                 </tr>
               )}
@@ -414,7 +400,6 @@ const Student = () => {
           </table>
         </div>
 
-        {/* Pagination Controls */}
         <div className="pagination-controls">
           <div className="pagination-buttons">
             <button 
@@ -436,103 +421,20 @@ const Student = () => {
           </div>
         </div>
 
-        {/* Add Student Modal */}
-        {showModal && (
-          <div className="modal">
-            <div className="modal-content">
-              <span className="close" onClick={() => setShowModal(false)}>&times;</span>
-              <h3>Add New Student</h3>
-              <form onSubmit={handleSubmit} className="student-form">
-                <input 
-                  name="student_id" 
-                  value={form.student_id} 
-                  onChange={handleChange} 
-                  placeholder="Student ID" 
-                  required 
-                />
-                <input 
-                  name="lname" 
-                  value={form.lname} 
-                  onChange={handleChange} 
-                  placeholder="Last Name" 
-                  required 
-                />
-                <input 
-                  name="fname" 
-                  value={form.fname} 
-                  onChange={handleChange} 
-                  placeholder="First Name" 
-                  required 
-                />
-                <input 
-                  name="mname" 
-                  value={form.mname} 
-                  onChange={handleChange} 
-                  placeholder="Middle Name" 
-                />
-                <input 
-                  name="suffix" 
-                  value={form.suffix} 
-                  onChange={handleChange} 
-                  placeholder="Suffix" 
-                />
-                <input 
-                  name="email" 
-                  value={form.email} 
-                  onChange={handleChange} 
-                  placeholder="Email" 
-                  required 
-                />
-                <input 
-                  name="Phone_number" 
-                  value={form.Phone_number} 
-                  onChange={handleChange} 
-                  placeholder="Phone Number" 
-                  required 
-                />
-                <select 
-                  name="gender" 
-                  value={form.gender} 
-                  onChange={handleChange} 
-                  required
-                >
-                  <option value="">Select Gender</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                </select>
-                <input 
-                  name="Course" 
-                  value={form.Course} 
-                  onChange={handleChange} 
-                  placeholder="Course" 
-                  required 
-                />
-                <input 
-                  name="yearlevel" 
-                  value={form.yearlevel} 
-                  onChange={handleChange} 
-                  placeholder="Year Level" 
-                  required 
-                />
-                <input 
-                  name="section" 
-                  value={form.section} 
-                  onChange={handleChange} 
-                  placeholder="Section" 
-                  required 
-                />
-                <input 
-                  name="Track" 
-                  value={form.Track} 
-                  onChange={handleChange} 
-                  placeholder="Track" 
-                  required 
-                />
-                <button type="submit" className="btn btn-primary">Add Student</button>
-              </form>
-            </div>
-          </div>
-        )}
+        <AddStudentModal 
+          showModal={showModal}
+          setShowModal={setShowModal}
+          fetchStudents={fetchStudents}
+          apiUrl={apiUrl}
+        />
+
+        <UpdateStudentModal 
+          showModal={showUpdateModal}
+          setShowModal={setShowUpdateModal}
+          selectedStudent={selectedStudent}
+          fetchStudents={fetchStudents}
+          apiUrl={apiUrl}
+        />
       </div>
     </div>
   );
