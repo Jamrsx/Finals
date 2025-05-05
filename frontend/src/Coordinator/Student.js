@@ -3,10 +3,12 @@ import axios from 'axios';
 import Sidebar from '../Coordinator/components/sidebar';
 import AddStudentModal from '../Coordinator/components/AddStudentModal';
 import UpdateStudentModal from '../Coordinator/components/UpdateStudentModal';
+import StudentTable from '../Coordinator/components/StudentTable';
 import { processCSV } from '../utils/csvProcessor';
 import '../css/studentadd.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import Swal from 'sweetalert2';
+import AuthCheck from '../utils/AuthCheck';
 
 const Student = () => {
   const [students, setStudents] = useState([]);
@@ -233,210 +235,110 @@ const Student = () => {
   };
 
   return (
-    <div className="dashboard-container">
-      <Sidebar />
-      <div className="dashboard-content">
-        <h2>Student Management</h2>
+    <AuthCheck>
+      <div className="dashboard-container">
+        <Sidebar />
+        <div className="dashboard-content">
+          <h2>Student Management</h2>
 
-        {error && (
-          <div className="error-message">
-            {error}
-          </div>
-        )}
-
-        <div className="table-controls">
-          <div className="search-container">
-            <input
-              type="text"
-              placeholder="Search by Last Name or Student ID"
-              value={searchTerm}
-              onChange={handleSearch}
-              className="search-input"
-            />
-          </div>
-          <div className="items-per-page">
-            <label>Show:</label>
-            <select value={itemsPerPage} onChange={handleItemsPerPageChange}>
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="20">20</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-              <option value={totalItems}>All</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="import-section">
-          <h3>Import Students from CSV</h3>
-          <form onSubmit={handleImport} className="csv-form">
-            <input type="file" accept=".csv" onChange={handleFileChange} />
-            <button 
-              type="submit" 
-              className="btn btn-primary" 
-              disabled={isImporting}
-            >
-              {isImporting ? 'Importing...' : 'Import CSV'}
-            </button>
-          </form>
-          
-          {isImporting && (
-            <div className="import-progress">
-              <div className="progress-bar">
-                <div 
-                  className="progress-fill" 
-                  style={{ width: `${importProgress}%` }}
-                ></div>
-              </div>
-              <div className="progress-info">
-                <span>{importProgress}%</span>
-                <span className="elapsed-time">
-                  {elapsedTime >= 60 
-                    ? `${Math.floor(elapsedTime / 60)}m ${elapsedTime % 60}s` 
-                    : `${elapsedTime}s`}
-                </span>
-              </div>
+          {error && (
+            <div className="error-message">
+              {error}
             </div>
           )}
 
-          {importStatus && (
-            <div className={`import-status ${importStatus.error ? 'error' : 'success'}`}>
-              {importStatus.error ? (
-                <p>Error: {importStatus.error}</p>
-              ) : (
-                <p>Successfully imported {importStatus.imported_count} students</p>
-              )}
-              {importStatus.errors && importStatus.errors.length > 0 && (
-                <div className="import-errors">
-                  <h4>Errors:</h4>
-                  <ul>
-                    {importStatus.errors.map((error, index) => (
-                      <li key={index}>{error}</li>
-                    ))}
-                  </ul>
+          <div className="import-section">
+            <h3>Import Students from CSV</h3>
+            <form onSubmit={handleImport} className="csv-form">
+              <input type="file" accept=".csv" onChange={handleFileChange} />
+              <button 
+                type="submit" 
+                className="btn btn-primary" 
+                disabled={isImporting}
+              >
+                {isImporting ? 'Importing...' : 'Import CSV'}
+              </button>
+            </form>
+            
+            {isImporting && (
+              <div className="import-progress">
+                <div className="progress-bar">
+                  <div 
+                    className="progress-fill" 
+                    style={{ width: `${importProgress}%` }}
+                  ></div>
                 </div>
-              )}
-            </div>
-          )}
-        </div>
+                <div className="progress-info">
+                  <span>{importProgress}%</span>
+                  <span className="elapsed-time">
+                    {elapsedTime >= 60 
+                      ? `${Math.floor(elapsedTime / 60)}m ${elapsedTime % 60}s` 
+                      : `${elapsedTime}s`}
+                  </span>
+                </div>
+              </div>
+            )}
 
-        <button 
-          className="btn btn-primary" 
-          onClick={() => setShowModal(true)}
-          style={{ marginBottom: '1.5rem' }}
-        >
-          Add New Student
-        </button>
-
-        <div className="table-container">
-          <table className="student-table">
-            <thead>
-              <tr>
-                <th>Student ID</th>
-                <th>Last Name</th>
-                <th>First Name</th>
-                <th>Middle Name</th>
-                <th>Suffix</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Gender</th>
-                <th>Course</th>
-                <th>Year Level</th>
-                <th>Section</th>
-                <th>Track</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan="13" style={{ textAlign: 'center', padding: '2rem' }}>
-                    Loading...
-                  </td>
-                </tr>
-              ) : students.length > 0 ? (
-                students.map((s) => (
-                  <tr key={s.student_id}>
-                    <td>{s.student_id}</td>
-                    <td>{s.lname}</td>
-                    <td>{s.fname}</td>
-                    <td>{s.mname}</td>
-                    <td>{s.suffix}</td>
-                    <td>{s.email}</td>
-                    <td>{s.Phone_number}</td>
-                    <td>{s.gender}</td>
-                    <td>{s.Course}</td>
-                    <td>{s.yearlevel}</td>
-                    <td>{s.section}</td>
-                    <td>{s.Track}</td>
-                    <td>
-                      <div className="action-buttons">
-                        <button 
-                          className="action-btn update"
-                          onClick={() => openUpdateModal(s)}
-                          title="Update"
-                        >
-                          <i className="fas fa-edit"></i>
-                        </button>
-                        <button 
-                          className="action-btn delete"
-                          onClick={() => handleDelete(s.student_id)}
-                          title="Delete"
-                        >
-                          <i className="fas fa-trash"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="13" style={{ textAlign: 'center', padding: '2rem' }}>
-                    {searchTerm ? 'No students found matching your search.' : 'No students found.'}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="pagination-controls">
-          <div className="pagination-buttons">
-            <button 
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1 || isLoading}
-            >
-              Previous
-            </button>
-            <span>Page {currentPage} of {Math.ceil(totalItems / itemsPerPage)}</span>
-            <button 
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage >= Math.ceil(totalItems / itemsPerPage) || isLoading}
-            >
-              Next
-            </button>
+            {importStatus && (
+              <div className={`import-status ${importStatus.error ? 'error' : 'success'}`}>
+                {importStatus.error ? (
+                  <p>Error: {importStatus.error}</p>
+                ) : (
+                  <p>Successfully imported {importStatus.imported_count} students</p>
+                )}
+                {importStatus.errors && importStatus.errors.length > 0 && (
+                  <div className="import-errors">
+                    <h4>Errors:</h4>
+                    <ul>
+                      {importStatus.errors.map((error, index) => (
+                        <li key={index}>{error}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-          <div className="pagination-info">
-            Showing {students.length} of {totalItems} students
-          </div>
+
+          <button 
+            className="btn btn-primary" 
+            onClick={() => setShowModal(true)}
+            style={{ marginBottom: '1.5rem' }}
+          >
+            Add New Student
+          </button>
+
+          <StudentTable
+            students={students}
+            isLoading={isLoading}
+            currentPage={currentPage}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            searchTerm={searchTerm}
+            onPageChange={handlePageChange}
+            onItemsPerPageChange={handleItemsPerPageChange}
+            onSearch={handleSearch}
+            onDelete={handleDelete}
+            onUpdate={openUpdateModal}
+          />
+
+          <AddStudentModal 
+            showModal={showModal}
+            setShowModal={setShowModal}
+            fetchStudents={fetchStudents}
+            apiUrl={apiUrl}
+          />
+
+          <UpdateStudentModal 
+            showModal={showUpdateModal}
+            setShowModal={setShowUpdateModal}
+            selectedStudent={selectedStudent}
+            fetchStudents={fetchStudents}
+            apiUrl={apiUrl}
+          />
         </div>
-
-        <AddStudentModal 
-          showModal={showModal}
-          setShowModal={setShowModal}
-          fetchStudents={fetchStudents}
-          apiUrl={apiUrl}
-        />
-
-        <UpdateStudentModal 
-          showModal={showUpdateModal}
-          setShowModal={setShowUpdateModal}
-          selectedStudent={selectedStudent}
-          fetchStudents={fetchStudents}
-          apiUrl={apiUrl}
-        />
       </div>
-    </div>
+    </AuthCheck>
   );
 };
 

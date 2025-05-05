@@ -4,6 +4,7 @@ import Sidebar from '../Coordinator/components/sidebar';
 import '../css/Dashboard.css';
 import '../css/track.css';
 import axios from 'axios';
+import AuthCheck from '../utils/AuthCheck';
 
 const Track = () => {
   const navigate = useNavigate();
@@ -93,81 +94,83 @@ const Track = () => {
   };
 
   return (
-    <div className="dashboard-container">
-      <Sidebar />
-      <div className="dashboard-content">
-        <h1>Track Management</h1>
-        <button onClick={openAddModal} style={{ marginBottom: '10px' }}>
-          ➕ Add New Track
-        </button>
+    <AuthCheck>
+      <div className="dashboard-container">
+        <Sidebar />
+        <div className="dashboard-content">
+          <h1>Track Management</h1>
+          <button onClick={openAddModal} style={{ marginBottom: '10px' }}>
+            ➕ Add New Track
+          </button>
 
-        <table border="1" width="100%" cellPadding="10">
-          <thead>
-            <tr>
-              <th>Track ID</th>
-              <th>Track Name</th>
-              <th>Description</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tracks.map((track) => (
-              <tr key={track.track_id}> {/* Use track_id for key */}
-                <td>{track.track_id}</td>
-                <td>{track.track_name}</td>
-                <td>{track.description}</td>
-                <td>
-                  <button onClick={() => openEditModal(track)}>✏️ Edit</button>
-                  <button onClick={() => handleDelete(track.track_id)} style={{ marginLeft: '10px' }}>🗑️ Delete</button>
-                </td>
+          <table border="1" width="100%" cellPadding="10">
+            <thead>
+              <tr>
+                <th>Track ID</th>
+                <th>Track Name</th>
+                <th>Description</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {tracks.map((track) => (
+                <tr key={track.track_id}> {/* Use track_id for key */}
+                  <td>{track.track_id}</td>
+                  <td>{track.track_name}</td>
+                  <td>{track.description}</td>
+                  <td>
+                    <button onClick={() => openEditModal(track)}>✏️ Edit</button>
+                    <button onClick={() => handleDelete(track.track_id)} style={{ marginLeft: '10px' }}>🗑️ Delete</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
 
-        {showModal && (
-          <div style={{
-            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex',
-            justifyContent: 'center', alignItems: 'center'
-          }}>
-            <div style={{ background: 'white', padding: '20px', borderRadius: '10px', width: '400px' }}>
-              <h2>{isEdit ? 'Edit Track' : 'Add Track'}</h2>
-              <form onSubmit={handleSubmit}>
-                <input
-                  type="text"
-                  placeholder="Track ID"
-                  value={trackId}
-                  onChange={(e) => setTrackId(e.target.value)}
-                  required
-                  style={{ width: '100%', marginBottom: '10px' }}
-                  disabled={isEdit} // Disable Track ID field in edit mode
-                />
-                <input
-                  type="text"
-                  placeholder="Track Name"
-                  value={trackName}
-                  onChange={(e) => setTrackName(e.target.value)}
-                  required
-                  style={{ width: '100%', marginBottom: '10px' }}
-                />
-                <textarea
-                  placeholder="Description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  required
-                  style={{ width: '100%', marginBottom: '10px' }}
-                />
-                <button type="submit" style={{ marginRight: '10px' }}>
-                  {isEdit ? 'Update' : 'Save'}
-                </button>
-                <button type="button" onClick={() => setShowModal(false)}>Cancel</button>
-              </form>
+          {showModal && (
+            <div style={{
+              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex',
+              justifyContent: 'center', alignItems: 'center'
+            }}>
+              <div style={{ background: 'white', padding: '20px', borderRadius: '10px', width: '400px' }}>
+                <h2>{isEdit ? 'Edit Track' : 'Add Track'}</h2>
+                <form onSubmit={handleSubmit}>
+                  <input
+                    type="text"
+                    placeholder="Track ID"
+                    value={trackId}
+                    onChange={(e) => setTrackId(e.target.value)}
+                    required
+                    style={{ width: '100%', marginBottom: '10px' }}
+                    disabled={isEdit} // Disable Track ID field in edit mode
+                  />
+                  <input
+                    type="text"
+                    placeholder="Track Name"
+                    value={trackName}
+                    onChange={(e) => setTrackName(e.target.value)}
+                    required
+                    style={{ width: '100%', marginBottom: '10px' }}
+                  />
+                  <textarea
+                    placeholder="Description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    required
+                    style={{ width: '100%', marginBottom: '10px' }}
+                  />
+                  <button type="submit" style={{ marginRight: '10px' }}>
+                    {isEdit ? 'Update' : 'Save'}
+                  </button>
+                  <button type="button" onClick={() => setShowModal(false)}>Cancel</button>
+                </form>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </AuthCheck>
   );
 };
 

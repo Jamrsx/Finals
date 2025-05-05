@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiMenu, FiHome, FiBarChart2, FiUsers, FiLogOut } from 'react-icons/fi';
+import Swal from 'sweetalert2';
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -19,8 +20,29 @@ const Sidebar = () => {
   }, [isCollapsed]);
 
   const handleLogout = () => {
-    localStorage.removeItem('coordinator');
-    navigate('/Coordinator/Login');
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You will be logged out of your account",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, logout',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        localStorage.removeItem('coordinator');
+        Swal.fire({
+          title: 'Logged out!',
+          text: 'You have been successfully logged out.',
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false
+        }).then(() => {
+          navigate('/Coordinator/Login');
+        });
+      }
+    });
   };
 
   const toggleSidebar = () => {
