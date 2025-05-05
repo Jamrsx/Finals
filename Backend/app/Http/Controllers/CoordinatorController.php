@@ -88,12 +88,38 @@ class CoordinatorController extends Controller
             $perPage = $request->input('per_page', 10);
             $page = $request->input('page', 1);
 
+            // Get paginated students with their relationships
             $students = StudentDetails::with(['account', 'section'])
                 ->orderBy('created_at', 'desc')
                 ->paginate($perPage, ['*'], 'page', $page);
 
+            // Format the student data
+            $formattedStudents = $students->map(function ($student) {
+                return [
+                    'student_id' => $student->student_id,
+                    'lname' => $student->lname,
+                    'fname' => $student->fname,
+                    'mname' => $student->mname,
+                    'suffix' => $student->suffix,
+                    'email' => $student->email,
+                    'Phone_number' => $student->Phone_number,
+                    'gender' => $student->gender,
+                    'status' => $student->status,
+                    'section' => $student->section ? [
+                        'Course' => $student->section->Course,
+                        'yearlevel' => $student->section->yearlevel,
+                        'section' => $student->section->section,
+                        'instructor' => $student->section->instructor,
+                        'Track' => $student->section->Track,
+                    ] : null,
+                    'account' => $student->account ? [
+                        'status' => $student->account->status,
+                    ] : null,
+                ];
+            });
+
             return response()->json([
-                'students' => $students->items(),
+                'students' => $formattedStudents,
                 'pagination' => [
                     'total' => $students->total(),
                     'per_page' => $students->perPage(),

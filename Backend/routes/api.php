@@ -13,13 +13,12 @@ Route::get('/user', function (Request $request) {
 Route::post('/coordinatorAdd', [AddCoordinator::class, 'storeCoordinator']);
 Route::post('/coordinator/login', [CoordinatorController::class, 'loginCoordinator']);
 
-
 Route::post('/students', [CoordinatorController::class, 'storeStudent']);
 Route::put('/student/{id}', [CoordinatorController::class, 'updateStudent']);
 Route::delete('/student/{id}', [CoordinatorController::class, 'deleteStudent']);
 Route::get('/showStudents', [CoordinatorController::class, 'getAllStudents']);
 
-
+// CSV Import Routes
 Route::post('/import-csv', [CsvImportController::class, 'import']);
 
 Route::post('/tracks', [CoordinatorController::class, 'addTrack']);
