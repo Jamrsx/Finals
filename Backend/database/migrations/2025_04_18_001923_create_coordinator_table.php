@@ -3,6 +3,8 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 return new class extends Migration
 {
@@ -23,6 +25,20 @@ return new class extends Migration
             $table->string('password');
             $table->timestamps();
         });
+
+        // Insert default coordinator
+        DB::table('coordinator')->insert([
+            'coordinator_id' => '001',
+            'lname' => 'Dela Cruz',
+            'fname' => 'Juan',
+            'mname' => 'Santos',
+            'suffix' => null,
+            'gender' => 'Male',
+            'email' => 'juandelacruz@example.com',
+            'password' => Hash::make('123456'),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 
     /**

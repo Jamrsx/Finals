@@ -29,16 +29,16 @@ const Sidebar = () => {
 
   const sidebarStyle = {
     width: isCollapsed ? '60px' : '200px',
-    height: '100vh',
+    height: 'auto',
     backgroundColor: '#2563eb',
     color: 'white',
-    padding: '20px 10px',
+    padding: '20px 20px',
     boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
     alignItems: isCollapsed ? 'center' : 'flex-start',
     transition: 'width 0.3s',
-  };
+  } 
 
   const headingStyle = {
     marginBottom: '30px',
@@ -71,6 +71,7 @@ const Sidebar = () => {
 
   const logoutStyle = {
     marginTop: 'auto',
+
     color: '#f87171',
   };
 

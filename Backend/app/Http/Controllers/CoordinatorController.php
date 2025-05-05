@@ -82,61 +82,29 @@ class CoordinatorController extends Controller
         }
     }
 
-    public function getAllStudents()
+    public function getAllStudents(Request $request)
     {
         try {
-            // First, let's check if we have any sections in the database
-            $sections = Section::all();
-            // \Log::info('All sections in database:', ['sections' => $sections->toArray()]);
+            $perPage = $request->input('per_page', 10);
+            $page = $request->input('page', 1);
 
-            // Fetch all student details with related section and account info
-            $students = StudentDetails::with(['section', 'account'])
-                ->get()
-                ->map(function ($student) {
-                    // Debug the student and its relationships
-                    // \Log::info('Student with relationships:', [
-                    //     'student_id' => $student->student_id,
-                    //     'has_section' => $student->section ? 'yes' : 'no',
-                    //     'section_data' => $student->section ? $student->section->toArray() : null,
-                    //     'raw_student' => $student->toArray()
-                    // ]);
+            $students = StudentDetails::with(['account', 'section'])
+                ->orderBy('created_at', 'desc')
+                ->paginate($perPage, ['*'], 'page', $page);
 
-                    return [
-                        'student_id' => $student->student_id,
-                        'lname' => $student->lname,
-                        'fname' => $student->fname,
-                        'mname' => $student->mname,
-                        'suffix' => $student->suffix,
-                        'email' => $student->email,
-                        'Phone_number' => $student->Phone_number,
-                        'gender' => $student->gender,
-                        'status' => $student->status,
-                        'section' => $student->section ? [
-                            'Course' => $student->section->Course,
-                            'yearlevel' => $student->section->yearlevel,
-                            'section' => $student->section->section,
-                            'instructor' => $student->section->instructor,
-                            'Track' => $student->section->Track,
-                        ] : null,
-                        'account' => $student->account ? [
-                            'status' => $student->account->status,
-                        ] : null,
-                    ];
-                });
-
-            // Debug the final response
-            // \Log::info('Final students response:', ['students' => $students]);
-
-            return response()->json(['students' => $students], 200);
-        } catch (\Exception $e) {
-                // \Log::error('Error in getAllStudents:', [
-                //     'error' => $e->getMessage(),
-                //     'trace' => $e->getTraceAsString()
-                // ]);
             return response()->json([
-                'error' => 'Failed to retrieve students.',
-                'message' => $e->getMessage()
-            ], 500);
+                'students' => $students->items(),
+                'pagination' => [
+                    'total' => $students->total(),
+                    'per_page' => $students->perPage(),
+                    'current_page' => $students->currentPage(),
+                    'last_page' => $students->lastPage(),
+                    'from' => $students->firstItem(),
+                    'to' => $students->lastItem()
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to fetch students: ' . $e->getMessage()], 500);
         }
     }
 
@@ -205,8 +173,8 @@ class CoordinatorController extends Controller
     {
         $validatedData = $request->validate([
             'track_id' => 'required|unique:track,track_id',  // Ensure track_id is unique
-            'track_name' => 'required|string',
-            'description' => 'required|string',
+            'track_name' => 'required|string|max:255',
+            'description' => 'required|string|max:65535',
         ]);
 
         DB::beginTransaction();

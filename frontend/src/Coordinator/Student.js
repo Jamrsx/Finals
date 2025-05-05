@@ -185,7 +185,7 @@ const Student = () => {
           Add New Student
         </button>
 
-        {/* Add Student Modal */}
+        {/* Add Student Modal */} 
         {showModal && (
           <div className="modal">
             <div className="modal-content">
@@ -207,7 +207,7 @@ const Student = () => {
                 <input name="Course" value={form.Course} onChange={handleChange} placeholder="Course" required />
                 <input name="yearlevel" value={form.yearlevel} onChange={handleChange} placeholder="Year Level" required />
                 <input name="section" value={form.section} onChange={handleChange} placeholder="Section" required />
-                {/* <input name="Track" value={form.Track} onChange={handleChange} placeholder="Track" /> */}
+             
                 <button type="submit">Add Student</button>
               </form>
             </div>
