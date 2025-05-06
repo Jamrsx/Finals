@@ -13,8 +13,19 @@ const StudentTable = ({
   onItemsPerPageChange,
   onSearch,
   onDelete,
-  onUpdate
+  onUpdate,
+  showRestoreButton = false
 }) => {
+  const handleAction = (student) => {
+    if (showRestoreButton) {
+      onDelete(student.student_id);
+    } else {
+      if (window.confirm('Are you sure you want to archive this student?')) {
+        onDelete(student.student_id);
+      }
+    }
+  };
+
   return (
     <div className="table-container">
       <div className="table-controls">
@@ -67,7 +78,7 @@ const StudentTable = ({
             </tr>
           ) : students.length > 0 ? (
             students.map((student) => (
-              <tr key={student.student_id}>
+              <tr key={student.student_id} className={student.status === '0' ? 'archived' : ''}>
                 <td>{student.student_id}</td>
                 <td>{student.lname}</td>
                 <td>{student.fname}</td>
@@ -82,19 +93,21 @@ const StudentTable = ({
                 <td>{student.Track}</td>
                 <td>
                   <div className="action-buttons">
+                    {!showRestoreButton && (
+                      <button 
+                        className="action-btn update"
+                        onClick={() => onUpdate(student)}
+                        title="Update"
+                      >
+                        <i className="fas fa-edit"></i>
+                      </button>
+                    )}
                     <button 
-                      className="action-btn update"
-                      onClick={() => onUpdate(student)}
-                      title="Update"
+                      className={`action-btn ${showRestoreButton ? 'restore' : 'delete'}`}
+                      onClick={() => handleAction(student)}
+                      title={showRestoreButton ? 'Restore' : 'Archive'}
                     >
-                      <i className="fas fa-edit"></i>
-                    </button>
-                    <button 
-                      className="action-btn delete"
-                      onClick={() => onDelete(student.student_id)}
-                      title="Delete"
-                    >
-                      <i className="fas fa-trash"></i>
+                      <i className={`fas fa-${showRestoreButton ? 'undo' : 'archive'}`}></i>
                     </button>
                   </div>
                 </td>
@@ -110,25 +123,25 @@ const StudentTable = ({
         </tbody>
       </table>
 
-      <div className="pagination-controls">
-        <div className="pagination-buttons">
-          <button 
-            onClick={() => onPageChange(currentPage - 1)}
-            disabled={currentPage === 1 || isLoading}
-          >
-            Previous
-          </button>
-          <span>Page {currentPage} of {Math.ceil(totalItems / itemsPerPage)}</span>
-          <button 
-            onClick={() => onPageChange(currentPage + 1)}
-            disabled={currentPage >= Math.ceil(totalItems / itemsPerPage) || isLoading}
-          >
-            Next
-          </button>
-        </div>
-        <div className="pagination-info">
-          Showing {students.length} of {totalItems} students
-        </div>
+      <div className="pagination" style={{ justifyContent: 'flex-start' }}>
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1 || isLoading}
+          className="pagination-btn"
+          style={{ marginRight: '10px' }}
+        >
+          Previous
+        </button>
+        <span className="page-info" style={{ margin: '0 15px' }}>
+          Page {currentPage} of {Math.ceil(totalItems / itemsPerPage)}
+        </span>
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage >= Math.ceil(totalItems / itemsPerPage) || isLoading}
+          className="pagination-btn"
+        >
+          Next
+        </button>
       </div>
     </div>
   );

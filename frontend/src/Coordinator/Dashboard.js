@@ -3,7 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Sidebar from '../Coordinator/components/sidebar';
 import StudentTable from './components/StudentTable';
-import '../css/Dashboard.css'; // Import the CSS file
+import UpdateStudentModal from './components/UpdateStudentModal';
+import '../css/Dashboard.css';
+import '../css/studentadd.css';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 import AuthCheck from '../utils/AuthCheck';
 
 const Dashboard = () => {
@@ -24,6 +27,8 @@ const Dashboard = () => {
     BSBA: 0,
     EDUC: 0
   });
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
 
   const apiUrl = 'http://localhost:8000/api'; // Hardcoded API URL like in Student component
 
@@ -133,8 +138,8 @@ const Dashboard = () => {
   };
 
   const handleUpdate = (student) => {
-    // Handle update logic here
-    console.log('Update student:', student);
+    setSelectedStudent(student);
+    setShowUpdateModal(true);
   };
 
   const toggleTableVisibility = () => {
@@ -190,6 +195,14 @@ const Dashboard = () => {
               onUpdate={handleUpdate}
             />
           )}
+
+          <UpdateStudentModal 
+            showModal={showUpdateModal}
+            setShowModal={setShowUpdateModal}
+            selectedStudent={selectedStudent}
+            fetchStudents={fetchStudents}
+            apiUrl={apiUrl}
+          />
         </div>
       </div>
     </AuthCheck>

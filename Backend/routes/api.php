@@ -17,6 +17,9 @@ Route::post('/students', [CoordinatorController::class, 'storeStudent']);
 Route::put('/student/{id}', [CoordinatorController::class, 'updateStudent']);
 Route::delete('/student/{id}', [CoordinatorController::class, 'deleteStudent']);
 Route::get('/showStudents', [CoordinatorController::class, 'getAllStudents']);
+Route::delete('/students/archive-all', [CoordinatorController::class, 'deleteAllStudents']);
+Route::get('/restore-student/{id}', [CoordinatorController::class, 'restoreStudent']);
+Route::get('/restore-all-students', [CoordinatorController::class, 'restoreAllStudents']);
 
 // CSV Import Routes
 Route::post('/import-csv', [CsvImportController::class, 'import']);

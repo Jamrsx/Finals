@@ -7,73 +7,84 @@ export const processCSV = (file) => {
     reader.onload = (e) => {
       try {
         const text = e.target.result;
-        const lines = text.split('\n').filter(line => line.trim()); // Remove empty lines
+        // Use more efficient string splitting
+        const lines = text.split(/\r?\n/).filter(Boolean);
+        
         if (lines.length < 2) {
           reject(new Error('CSV file must contain at least a header row and one data row'));
           return;
-        } 
+        }
 
-        // Lowercase and trim headers for flexible matching
-        const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-        // Accept both phone_nu and phone_number
-        const phoneHeader = headers.includes('phone_number') ? 'phone_number' : (headers.includes('phone_nu') ? 'phone_nu' : null);
-        const requiredHeaders = ['student_id', 'lname', 'fname', 'email', phoneHeader, 'gender', 'course', 'yearlevel', 'section'];
+        // Pre-process headers once
+        const headerMap = {};
+        const headers = lines[0].split(',');
+        headers.forEach((h, i) => headerMap[h.trim().toLowerCase()] = i);
+
+        // Check for phone header once
+        const phoneHeaderKey = headerMap['phone_number'] !== undefined ? 'phone_number' : 
+                             headerMap['phone_nu'] !== undefined ? 'phone_nu' : null;
+
+        const requiredFields = ['student_id', 'lname', 'fname', 'email', phoneHeaderKey, 'gender', 'course', 'yearlevel', 'section'];
+        
         // Validate headers
-        const missingHeaders = requiredHeaders.filter(h => !h);
-        if (missingHeaders.length > 0 || !phoneHeader) {
-          reject(new Error(`Missing required columns: ${['student_id', 'lname', 'fname', 'email', 'phone_number or phone_nu', 'gender', 'course', 'yearlevel', 'section'].filter((h, i) => !requiredHeaders[i]).join(', ')}`));
+        const missingHeaders = requiredFields.filter(h => headerMap[h] === undefined);
+        if (missingHeaders.length > 0 || !phoneHeaderKey) {
+          reject(new Error(`Missing required columns: ${['student_id', 'lname', 'fname', 'email', 'phone_number or phone_nu', 'gender', 'course', 'yearlevel', 'section'].filter((h, i) => headerMap[h] === undefined).join(', ')}`));
           return;
         }
 
-        for (let i = 1; i < lines.length; i++) {
-          const values = lines[i].split(',').map(v => v.trim());
-          if (values.length < headers.length) {
-            errors.push(`Row ${i + 1}: Missing values. Expected ${headers.length} columns, got ${values.length}`);
-            continue;
-          }
+        // Process rows in chunks for better performance
+        const CHUNK_SIZE = 1000;
+        for (let i = 1; i < lines.length; i += CHUNK_SIZE) {
+          const chunk = lines.slice(i, i + CHUNK_SIZE);
+          
+          chunk.forEach((line, index) => {
+            const values = line.split(',');
+            const rowNum = i + index + 1;
 
-          // Helper to get value by header name (case-insensitive)
-          const getValue = (name) => {
-            const idx = headers.indexOf(name);
-            return idx !== -1 ? values[idx] : '';
-          };
-
-          // Convert phone number from scientific notation if needed
-          let phoneValue = getValue('phone_number') || getValue('phone_nu');
-          if (/e\+?\d+/i.test(phoneValue)) {
-            // Convert scientific notation to plain string
-            try {
-              phoneValue = String(parseInt(Number(phoneValue)));
-            } catch {
-              // leave as is if conversion fails
+            if (values.length < headers.length) {
+              errors.push(`Row ${rowNum}: Missing values. Expected ${headers.length} columns, got ${values.length}`);
+              return;
             }
-          }
 
-          const student = {
-            student_id: getValue('student_id'),
-            lname: getValue('lname'),
-            fname: getValue('fname'),
-            mname: getValue('mname'),
-            suffix: getValue('suffix'),
-            email: getValue('email'),
-            Phone_number: phoneValue,
-            gender: getValue('gender'),
-            Course: getValue('course'),
-            yearlevel: getValue('yearlevel'),
-            section: getValue('section'),
-            Track: getValue('track')
-          };
+            // More efficient value lookup using pre-computed indices
+            const getValue = (field) => {
+              const idx = headerMap[field];
+              return idx !== undefined ? values[idx].trim() : '';
+            };
 
-          // Fill missing optional fields with empty string
-          ['mname', 'suffix', 'Track'].forEach(f => { if (student[f] === undefined) student[f] = ''; });
+            let phoneValue = getValue(phoneHeaderKey);
+            if (/e\+?\d+/i.test(phoneValue)) {
+              try {
+                phoneValue = String(parseInt(Number(phoneValue)));
+              } catch {
+                // leave as is if conversion fails
+              }
+            }
 
-          // Validate the student data
-          const validationError = validateStudent(student, i + 1);
-          if (validationError) {
-            errors.push(validationError);
-          } else {
-            students.push(student);
-          }
+            const student = {
+              student_id: getValue('student_id'),
+              lname: getValue('lname'),
+              fname: getValue('fname'),
+              mname: getValue('mname') || '',
+              suffix: getValue('suffix') || '',
+              email: getValue('email'),
+              Phone_number: phoneValue,
+              gender: getValue('gender'),
+              Course: getValue('course'),
+              yearlevel: getValue('yearlevel'),
+              section: getValue('section'),
+              Track: getValue('track') || '',
+              selected: false // Add selected property for bulk operations
+            };
+
+            const validationError = validateStudent(student, rowNum);
+            if (validationError) {
+              errors.push(validationError);
+            } else {
+              students.push(student);
+            }
+          });
         }
 
         resolve({ students, errors });
@@ -82,9 +93,35 @@ export const processCSV = (file) => {
       }
     };
 
+    // Use readAsArrayBuffer for potentially faster reading of large files
     reader.onerror = () => reject(new Error('Error reading file'));
     reader.readAsText(file);
   });
+};
+
+// Function to toggle selection of all students
+export const toggleSelectAll = (students, selected) => {
+  return students.map(student => ({
+    ...student,
+    selected: selected
+  }));
+};
+
+// Function to get selected students
+export const getSelectedStudents = (students) => {
+  return students.filter(student => student.selected);
+};
+
+// Memoize validation functions for better performance
+const memoize = (fn) => {
+  const cache = new Map();
+  return (...args) => {
+    const key = JSON.stringify(args);
+    if (!cache.has(key)) {
+      cache.set(key, fn(...args));
+    }
+    return cache.get(key);
+  };
 };
 
 const validateStudent = (student, rowNumber) => {
@@ -100,31 +137,22 @@ const validateStudent = (student, rowNumber) => {
     section: 'Section'
   };
 
-  // Trim all values before validation
-  Object.keys(student).forEach(key => {
-    if (typeof student[key] === 'string') {
-      student[key] = student[key].trim();
-    }
-  });
-
-  // Check required fields
+  // Check required fields first
   for (const [field, label] of Object.entries(requiredFields)) {
-    if (!student[field]) {
+    if (!student[field]?.trim()) {
       return `Row ${rowNumber}: ${label} is required`;
     }
   }
 
-  // Validate email format (trimmed, case-insensitive)
+  // Only validate if required fields are present
   if (!isValidEmail(student.email)) {
     return `Row ${rowNumber}: Invalid email format`;
   }
 
-  // Validate phone number format (trimmed, only digits, 10+ digits)
   if (!isValidPhoneNumber(student.Phone_number)) {
     return `Row ${rowNumber}: Invalid phone number format`;
   }
 
-  // Validate year level
   if (!isValidYearLevel(student.yearlevel)) {
     return `Row ${rowNumber}: Invalid year level`;
   }
@@ -132,33 +160,26 @@ const validateStudent = (student, rowNumber) => {
   return null;
 };
 
-const isSpecialEmpty = (val) => {
+const isSpecialEmpty = memoize((val) => {
   if (!val) return true;
   const v = val.trim().toLowerCase();
-  return v === '' || v === 'none' || v === 'null' || v === 'blank' || v === 'nan' || v==='NONE';
-};
+  return v === '' || v === 'none' || v === 'null' || v === 'blank' || v === 'nan' || v === 'none';
+});
 
-const isValidEmail = (email) => {
+const isValidEmail = memoize((email) => {
   if (isSpecialEmpty(email)) return true;
   const trimmed = email.trim();
-  // Loosened: just check for '@' and not empty
   return trimmed.length > 0 && trimmed.includes('@');
-};
+});
 
-const isValidPhoneNumber = (phone) => {
+const isValidPhoneNumber = memoize((phone) => {
   if (isSpecialEmpty(phone)) return true;
-  // Loosened: accept if at least 7 digits
   const digits = phone.replace(/[^0-9]/g, '');
   return digits.length >= 7;
-};
+});
 
-const isValidYearLevel = (year) => {
+const isValidYearLevel = memoize((year) => {
   if (!year) return false;
-  const validLevels = [
-    'first year',
-    'second year',
-    'third year',
-    'fourth year'
-  ];
-  return validLevels.includes(year.trim().toLowerCase());
-}; 
+  const validLevels = new Set(['first year', 'second year', 'third year', 'fourth year']);
+  return validLevels.has(year.trim().toLowerCase());
+});

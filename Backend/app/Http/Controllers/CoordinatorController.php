@@ -112,6 +112,7 @@ class CoordinatorController extends Controller
             $perPage = $request->input('per_page', 10);
             $page = $request->input('page', 1);
             $search = $request->input('search', '');
+            $showArchived = $request->input('show_archived', false);
 
             // Build the query
             $query = StudentDetails::with(['account', 'section'])
@@ -125,6 +126,13 @@ class CoordinatorController extends Controller
                       ->orWhere('fname', 'like', '%' . $search . '%')
                       ->orWhere('email', 'like', '%' . $search . '%');
                 });
+            }
+
+            // Filter by archived status
+            if ($showArchived) {
+                $query->where('status', '0'); // Show only archived students
+            } else {
+                $query->where('status', '1'); // Show only active students
             }
 
             // Get paginated students
@@ -269,18 +277,52 @@ class CoordinatorController extends Controller
                 return response()->json(['error' => 'Student not found'], 404);
             }
 
-            $studentAcc->delete();
-            $studentDetails->delete();
+            // Update status to archived (0) instead of deleting
+            $studentAcc->update(['status' => '0']);
+            $studentDetails->update(['status' => '0']);
 
             DB::commit();
-            return response()->json(['message' => 'Student successfully deleted.'], 200);
+            return response()->json(['message' => 'Student successfully archived.'], 200);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['error' => 'Failed to delete student. ' . $e->getMessage()], 500);
+            return response()->json(['error' => 'Failed to archive student. ' . $e->getMessage()], 500);
         }
     }
 
+    public function archiveAllStudents()
+    {
+        DB::beginTransaction();
 
+        try {
+            // Get count before archiving
+            $count = StudentAcc::where('status', '1')->count();
+
+            if ($count === 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No active students found to archive'
+                ], 404);
+            }
+
+            // Archive all active records
+            StudentAcc::where('status', '1')->update(['status' => '0']);
+            StudentDetails::where('status', '1')->update(['status' => '0']);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'All students archived successfully',
+                'count' => $count
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to archive all students: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 
     //==============================END ADD STUDENT DETAILS AND ACCOUNT===============================
 
@@ -490,6 +532,110 @@ class CoordinatorController extends Controller
             ], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Login failed. ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function restoreStudent($id)
+    {
+        DB::beginTransaction();
+
+        try {
+            $studentAcc = StudentAcc::where('student_id', $id)->first();
+            $studentDetails = StudentDetails::where('student_id', $id)->first();
+
+            if (!$studentAcc || !$studentDetails) {
+                return response()->json(['error' => 'Student not found'], 404);
+            }
+
+            // Update status to active
+            $studentAcc->update(['status' => '1']);
+            $studentDetails->update(['status' => '1']);
+
+            DB::commit();
+            return response()->json(['message' => 'Student successfully restored.'], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Failed to restore student. ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function deleteAllStudents()
+    {
+        DB::beginTransaction();
+
+        try {
+            // Get count before archiving
+            $count = StudentAcc::where('status', '1')->count();
+
+            if ($count === 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No active students found to archive'
+                ], 404);
+            }
+
+            // Archive all active records
+            $updatedAcc = StudentAcc::where('status', '1')->update(['status' => '0']);
+            $updatedDetails = StudentDetails::where('status', '1')->update(['status' => '0']);
+
+            if ($updatedAcc === 0 || $updatedDetails === 0) {
+                throw new \Exception('Failed to update student records');
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'All students archived successfully',
+                'count' => $count
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error in deleteAllStudents: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to archive all students: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function restoreAllStudents()
+    {
+        DB::beginTransaction();
+
+        try {
+            // Get count before restoring
+            $count = StudentAcc::where('status', '0')->count();
+
+            if ($count === 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No archived students found to restore'
+                ], 404);
+            }
+
+            // Restore all archived records
+            $updatedAcc = StudentAcc::where('status', '0')->update(['status' => '1']);
+            $updatedDetails = StudentDetails::where('status', '0')->update(['status' => '1']);
+
+            if ($updatedAcc === 0 || $updatedDetails === 0) {
+                throw new \Exception('Failed to update student records');
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'All students restored successfully',
+                'count' => $count
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error in restoreAllStudents: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to restore all students: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

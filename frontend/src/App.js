@@ -4,17 +4,24 @@ import Login from './Coordinator/Login';  // Login component
 import Dashboard from './Coordinator/Dashboard';  // Dashboard component
 import Track from './Coordinator/Track'; 
 import Student from './Coordinator/Student'; 
+import StudentArchive from './Coordinator/StudentArchive';
+import { ThemeProvider } from './context/ThemeContext';
+import './css/theme.css';
+
 function App() {
   return (
-    <div className="App">
-      <Routes>
-        <Route path="/" element={<Navigate to="/Coordinator/Login" />} />
-        <Route path="/Coordinator/Login" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/track" element={<Track/>} />
-        <Route path="/students" element={<Student/>} />
-      </Routes>
-    </div>
+    <ThemeProvider>
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<Navigate to="/Coordinator/Login" />} />
+          <Route path="/Coordinator/Login" element={<Login />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/track" element={<Track/>} />
+          <Route path="/students" element={<Student/>} />
+          <Route path="/student-archive" element={<StudentArchive/>} />
+        </Routes>
+      </div>
+    </ThemeProvider>
   );
 }
 

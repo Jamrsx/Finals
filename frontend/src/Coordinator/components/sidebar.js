@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiMenu, FiHome, FiBarChart2, FiUsers, FiLogOut } from 'react-icons/fi';
+import { FiMenu, FiHome, FiBarChart2, FiUsers, FiLogOut, FiArchive } from 'react-icons/fi';
 import Swal from 'sweetalert2';
 
 const Sidebar = () => {
@@ -93,7 +93,6 @@ const Sidebar = () => {
 
   const logoutStyle = {
     marginTop: 'auto',
-
     color: '#f87171',
   };
 
@@ -149,8 +148,18 @@ const Sidebar = () => {
       </button>
 
       <button
-        style={{ ...buttonStyle(3), ...logoutStyle }}
+        style={buttonStyle(3)}
         onMouseEnter={() => setHoveredButton(3)}
+        onMouseLeave={() => setHoveredButton(null)}
+        onClick={() => navigate('/student-archive')}
+      >
+        <FiArchive />
+        {!isCollapsed && 'Archive'}
+      </button>
+
+      <button
+        style={{ ...buttonStyle(4), ...logoutStyle }}
+        onMouseEnter={() => setHoveredButton(4)}
         onMouseLeave={() => setHoveredButton(null)}
         onClick={handleLogout}
       >

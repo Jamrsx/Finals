@@ -183,29 +183,102 @@ const Student = () => {
 
   const handleDelete = async (id) => {
     Swal.fire({
-      title: 'Are you sure?',
-      text: "You won't be able to revert this!",
+      title: 'Archive Student?',
+      text: "This will archive the student. You can restore them later if needed.",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete it!'
+      confirmButtonText: 'Yes, archive it!'
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
           await axios.delete(`${apiUrl}/student/${id}`);
           Swal.fire(
-            'Deleted!',
-            'Student has been deleted.',
+            'Archived!',
+            'Student has been archived.',
             'success'
           ).then(() => {
             fetchStudents();
           });
         } catch (err) {
-          console.error('Error deleting student:', err);
+          console.error('Error archiving student:', err);
           Swal.fire({
             title: 'Error!',
-            text: 'Failed to delete student',
+            text: 'Failed to archive student',
+            icon: 'error',
+            confirmButtonText: 'OK'
+          });
+        }
+      }
+    });
+  };
+
+  const handleDeleteAll = async () => {
+    if (students.length === 0) {
+      Swal.fire({
+        title: 'No Students',
+        text: 'There are no students to archive',
+        icon: 'info',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
+    Swal.fire({
+      title: 'Archive All Students',
+      text: "This will archive ALL active students. Are you absolutely sure?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, archive all!',
+      cancelButtonText: 'Cancel',
+      input: 'text',
+      inputPlaceholder: 'Type "ARCHIVE" to confirm',
+      inputValidator: (value) => {
+        if (value !== 'ARCHIVE') {
+          return 'You must type "ARCHIVE" to confirm';
+        }
+      }
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          Swal.fire({
+            title: 'Archiving...',
+            text: 'Please wait while all students are being archived',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => {
+              Swal.showLoading();
+            }
+          });
+
+          const response = await axios.delete(`${apiUrl}/students/archive-all`);
+          
+          if (response.data.success) {
+            setStudents([]); // Clear students array
+            setTotalItems(0); // Reset total items
+            setCurrentPage(1); // Reset to first page
+            setSearchTerm(''); // Clear search
+            setDebouncedSearchTerm(''); // Clear debounced search
+            
+            Swal.fire({
+              title: 'Success!',
+              text: `Successfully archived ${response.data.count || 'all'} students`,
+              icon: 'success',
+              timer: 2000,
+              showConfirmButton: false
+            });
+          } else {
+            throw new Error(response.data.message || 'Failed to archive students');
+          }
+        } catch (err) {
+          console.error('Error archiving all students:', err);
+          Swal.fire({
+            title: 'Error!',
+            text: 'Failed to archive all students. Please try again.',
             icon: 'error',
             confirmButtonText: 'OK'
           });
@@ -303,9 +376,17 @@ const Student = () => {
           <button 
             className="btn btn-primary" 
             onClick={() => setShowModal(true)}
-            style={{ marginBottom: '1.5rem' }}
+            style={{ marginBottom: '1.5rem', marginRight: '1rem' }}
           >
             Add New Student
+          </button>
+
+          <button 
+            className="btn btn-danger" 
+            onClick={handleDeleteAll}
+            style={{ marginBottom: '1.5rem' }}
+          >
+            Archive All Students
           </button>
 
           <StudentTable

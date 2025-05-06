@@ -92,21 +92,30 @@
 }
 
 .action-btn.update {
-  color: var(--primary-color);
-  background-color: rgba(37, 99, 235, 0.1);
+  color: white;
+  background-color: var(--primary-color);
 }
 
 .action-btn.update:hover {
-  background-color: rgba(37, 99, 235, 0.2);
+  background-color: var(--primary-hover);
 }
 
 .action-btn.delete {
-  color: var(--danger-color);
-  background-color: rgba(239, 68, 68, 0.1);
+  color: #dc3545;
+  background-color: rgba(220, 53, 69, 0.1);
 }
 
 .action-btn.delete:hover {
-  background-color: rgba(239, 68, 68, 0.2);
+  background-color: rgba(220, 53, 69, 0.2);
+}
+
+.action-btn.restore {
+  color: #28a745;
+  background-color: rgba(40, 167, 69, 0.1);
+}
+
+.action-btn.restore:hover {
+  background-color: rgba(40, 167, 69, 0.2);
 }
 
 /* Pagination Controls */
@@ -248,4 +257,14 @@
   background-color: #f2dede;
   color: #a94442;
   border-radius: 4px;
+}
+
+.btn-danger {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #dc2626;
+  transform: translateY(-1px);
 } 
