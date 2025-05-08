@@ -166,12 +166,12 @@ const UpdateStudentModal = ({ showModal, setShowModal, selectedStudent, fetchStu
             placeholder="Section" 
             required 
           />
-          <input 
+          {/* <input 
             name="Track" 
             value={updateForm.Track} 
             onChange={handleChange} 
             placeholder="Track" 
-          />
+          /> */}
           <button type="submit" className="btn btn-primary">Update Student</button>
         </form>
       </div>

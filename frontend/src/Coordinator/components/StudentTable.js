@@ -94,7 +94,7 @@ const StudentTable = ({
                 <td>
                   <div className="action-buttons">
                     {!showRestoreButton && (
-                      <button 
+                      <button
                         className="action-btn update"
                         onClick={() => onUpdate(student)}
                         title="Update"
@@ -102,7 +102,7 @@ const StudentTable = ({
                         <i className="fas fa-edit"></i>
                       </button>
                     )}
-                    <button 
+                    <button
                       className={`action-btn ${showRestoreButton ? 'restore' : 'delete'}`}
                       onClick={() => handleAction(student)}
                       title={showRestoreButton ? 'Restore' : 'Archive'}

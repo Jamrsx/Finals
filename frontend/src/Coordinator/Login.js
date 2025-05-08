@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { FiUser, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
 import Swal from 'sweetalert2';
-import '../css/Login.css';
+import './css/Login.css';
 
 function Login() {
   const [coordinatorId, setCoordinatorId] = useState('');

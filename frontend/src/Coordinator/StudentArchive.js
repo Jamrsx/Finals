@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Sidebar from '../Coordinator/components/sidebar';
-import '../css/StudentArchive.css';
+import Header from './components/Header';
+import './css/StudentArchive.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import Swal from 'sweetalert2';
 import AuthCheck from '../utils/AuthCheck';
@@ -214,7 +215,7 @@ const StudentArchive = () => {
       <div className="dashboard-container">
         <Sidebar />
         <div className="dashboard-content">
-          <h2>Archived Students</h2>
+          <Header title="Archived Students" />
 
           {error && (
             <div className="error-message">

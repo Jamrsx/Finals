@@ -4,8 +4,9 @@ import Sidebar from '../Coordinator/components/sidebar';
 import AddStudentModal from '../Coordinator/components/AddStudentModal';
 import UpdateStudentModal from '../Coordinator/components/UpdateStudentModal';
 import StudentTable from '../Coordinator/components/StudentTable';
+import Header from './components/Header';
 import { processCSV } from '../utils/csvProcessor';
-import '../css/studentadd.css';
+import './css/studentadd.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import Swal from 'sweetalert2';
 import AuthCheck from '../utils/AuthCheck';
@@ -312,7 +313,7 @@ const Student = () => {
       <div className="dashboard-container">
         <Sidebar />
         <div className="dashboard-content">
-          <h2>Student Management</h2>
+          <Header title="Student Management" />
 
           {error && (
             <div className="error-message">

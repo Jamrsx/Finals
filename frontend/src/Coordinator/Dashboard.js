@@ -4,8 +4,9 @@ import axios from 'axios';
 import Sidebar from '../Coordinator/components/sidebar';
 import StudentTable from './components/StudentTable';
 import UpdateStudentModal from './components/UpdateStudentModal';
-import '../css/Dashboard.css';
-import '../css/studentadd.css';
+import Header from './components/Header';
+import './css/Dashboard.css';
+import './css/studentadd.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import AuthCheck from '../utils/AuthCheck';
 
@@ -44,7 +45,7 @@ const Dashboard = () => {
           per_page: 1000 // Get a large number to ensure we get all students
         }
       });
-      
+
       if (response.data && response.data.students) {
         calculateCourseStats(response.data.students);
       }
@@ -63,12 +64,12 @@ const Dashboard = () => {
           search: searchTerm
         }
       });
-      
+
       if (response.data && response.data.students) {
         const formattedStudents = response.data.students.map(student => {
           const section = student.section || {};
           const account = student.account || {};
-          
+
           return {
             student_id: student.student_id || '',
             lname: student.lname || '',
@@ -154,8 +155,8 @@ const Dashboard = () => {
       <div className="dashboard-container">
         <Sidebar />
         <div className="dashboard-content">
-          <h1>Welcome Coordinator!</h1>
-          
+          <Header title="Welcome Coordinator!" />
+
           <div className="analytics-container">
             <div className="analytics-card">
               <h3>BSIT Students</h3>
@@ -172,7 +173,7 @@ const Dashboard = () => {
           </div>
 
           <div className="table-controls">
-            <button 
+            <button
               className="toggle-table-btn"
               onClick={toggleTableVisibility}
             >
@@ -196,7 +197,7 @@ const Dashboard = () => {
             />
           )}
 
-          <UpdateStudentModal 
+          <UpdateStudentModal
             showModal={showUpdateModal}
             setShowModal={setShowUpdateModal}
             selectedStudent={selectedStudent}

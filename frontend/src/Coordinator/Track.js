@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../Coordinator/components/sidebar';
-import '../css/Dashboard.css';
-import '../css/track.css';
+import Header from './components/Header';
+import './css/Dashboard.css';
+import './css/track.css';
 import axios from 'axios';
 import AuthCheck from '../utils/AuthCheck';
 import '@fortawesome/fontawesome-free/css/all.min.css';
@@ -177,7 +178,7 @@ const Track = () => {
       <div className="dashboard-container">
         <Sidebar />
         <div className="dashboard-content">
-          <h1>Track Management</h1>
+          <Header title="Track Management" />
           <button onClick={openAddModal} style={{ marginBottom: '10px' }}>
             ➕ Add New Track
           </button>

@@ -6,7 +6,7 @@ import Track from './Coordinator/Track';
 import Student from './Coordinator/Student'; 
 import StudentArchive from './Coordinator/StudentArchive';
 import { ThemeProvider } from './context/ThemeContext';
-import './css/theme.css';
+import './Coordinator/css/theme.css';
 
 function App() {
   return (

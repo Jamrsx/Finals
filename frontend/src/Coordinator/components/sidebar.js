@@ -156,7 +156,7 @@ const Sidebar = () => {
         <FiArchive />
         {!isCollapsed && 'Archive'}
       </button>
-
+{/* 
       <button
         style={{ ...buttonStyle(4), ...logoutStyle }}
         onMouseEnter={() => setHoveredButton(4)}
@@ -165,7 +165,7 @@ const Sidebar = () => {
       >
         <FiLogOut />
         {!isCollapsed && 'Logout'}
-      </button>
+      </button> */}
     </div>
   );
 };
