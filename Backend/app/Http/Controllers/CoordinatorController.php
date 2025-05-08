@@ -265,7 +265,7 @@ class CoordinatorController extends Controller
         }
     }
 
-    public function deleteStudent($id)
+    public function archiveStudent($id)
     {
         DB::beginTransaction();
 
@@ -288,7 +288,6 @@ class CoordinatorController extends Controller
             return response()->json(['error' => 'Failed to archive student. ' . $e->getMessage()], 500);
         }
     }
-
     public function archiveAllStudents()
     {
         DB::beginTransaction();
@@ -305,8 +304,12 @@ class CoordinatorController extends Controller
             }
 
             // Archive all active records
-            StudentAcc::where('status', '1')->update(['status' => '0']);
-            StudentDetails::where('status', '1')->update(['status' => '0']);
+            $updatedAcc = StudentAcc::where('status', '1')->update(['status' => '0']);
+            $updatedDetails = StudentDetails::where('status', '1')->update(['status' => '0']);
+
+            if ($updatedAcc === 0 || $updatedDetails === 0) {
+                throw new \Exception('Failed to update student records');
+            }
 
             DB::commit();
 
@@ -317,12 +320,55 @@ class CoordinatorController extends Controller
             ], 200);
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Error in deleteAllStudents: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to archive all students: ' . $e->getMessage()
             ], 500);
         }
     }
+
+    public function restoreAllStudents()
+    {
+        DB::beginTransaction();
+
+        try {
+            // Get count before restoring
+            $count = StudentAcc::where('status', '0')->count();
+
+            if ($count === 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No archived students found to restore'
+                ], 404);
+            }
+
+            // Restore all archived records
+            $updatedAcc = StudentAcc::where('status', '0')->update(['status' => '1']);
+            $updatedDetails = StudentDetails::where('status', '0')->update(['status' => '1']);
+
+            if ($updatedAcc === 0 || $updatedDetails === 0) {
+                throw new \Exception('Failed to update student records');
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'All students restored successfully',
+                'count' => $count
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error in restoreAllStudents: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to restore all students: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    
 
     //==============================END ADD STUDENT DETAILS AND ACCOUNT===============================
 
@@ -417,8 +463,7 @@ class CoordinatorController extends Controller
     public function addInstructor(Request $request)
     {
         $validatedData = $request->validate([
-
-            'instructor_id' => 'required',
+            'instructor_id' => 'required|string',
             'lname' => 'required|string',
             'fname' => 'required|string',
             'email' => 'required|string',
@@ -460,30 +505,70 @@ class CoordinatorController extends Controller
         }
     }
 
+    public function showInstructors()
+    {
+        try {
+            $instructors = Instructor::all();
+            return response()->json($instructors, 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to fetch instructors. ' . $e->getMessage()], 500);
+        }
+    }
     public function updateInstructor(Request $request, $id)
     {
-        $validatedData = $request->validate([
-            'lname' => 'sometimes|string',
-            'fname' => 'sometimes|string',
-            'email' => 'sometimes|email',
-            'phone' => 'sometimes|string',
-        ]);
-
         try {
-            $instructor = Instructor::where('instructor_id', $id)->first();
+            // Validate input
+            $validatedData = $request->validate([
+                'instructor_id' => 'sometimes|string',
+                'lname' => 'required|string',
+                'fname' => 'required|string', 
+                'email' => 'required|email',
+                'phone' => 'required|string'
+            ]);
 
-            if (!$instructor) {
-                return response()->json(['message' => 'Instructor not found'], 404);
+            // Start transaction
+            DB::beginTransaction();
+
+            try {
+                $instructor = Instructor::where('instructor_id', $id)->first();
+
+                if (!$instructor) {
+                    return response()->json(['error' => 'Instructor not found'], 404);
+                }
+
+                // Update instructor details
+                $instructor->update([
+                    'lname' => $validatedData['lname'],
+                    'fname' => $validatedData['fname'],
+                    'email' => $validatedData['email'],
+                    'phone' => $validatedData['phone']
+                ]);
+
+                DB::commit();
+
+                return response()->json([
+                    'message' => 'Instructor successfully updated',
+                    'data' => $instructor
+                ], 200);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return response()->json([
+                    'error' => 'Failed to update instructor records',
+                    'details' => $e->getMessage()
+                ], 500);
             }
 
-            $instructor->update($validatedData);
-
+        } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
-                'message' => 'Instructor updated successfully.',
-                'data' => $instructor
-            ], 200);
+                'error' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to update instructor. ' . $e->getMessage()], 500);
+            return response()->json([
+                'error' => 'An unexpected error occurred',
+                'details' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -559,83 +644,5 @@ class CoordinatorController extends Controller
         }
     }
 
-    public function deleteAllStudents()
-    {
-        DB::beginTransaction();
-
-        try {
-            // Get count before archiving
-            $count = StudentAcc::where('status', '1')->count();
-
-            if ($count === 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No active students found to archive'
-                ], 404);
-            }
-
-            // Archive all active records
-            $updatedAcc = StudentAcc::where('status', '1')->update(['status' => '0']);
-            $updatedDetails = StudentDetails::where('status', '1')->update(['status' => '0']);
-
-            if ($updatedAcc === 0 || $updatedDetails === 0) {
-                throw new \Exception('Failed to update student records');
-            }
-
-            DB::commit();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'All students archived successfully',
-                'count' => $count
-            ], 200);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error in deleteAllStudents: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to archive all students: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function restoreAllStudents()
-    {
-        DB::beginTransaction();
-
-        try {
-            // Get count before restoring
-            $count = StudentAcc::where('status', '0')->count();
-
-            if ($count === 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No archived students found to restore'
-                ], 404);
-            }
-
-            // Restore all archived records
-            $updatedAcc = StudentAcc::where('status', '0')->update(['status' => '1']);
-            $updatedDetails = StudentDetails::where('status', '0')->update(['status' => '1']);
-
-            if ($updatedAcc === 0 || $updatedDetails === 0) {
-                throw new \Exception('Failed to update student records');
-            }
-
-            DB::commit();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'All students restored successfully',
-                'count' => $count
-            ], 200);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error in restoreAllStudents: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to restore all students: ' . $e->getMessage()
-            ], 500);
-        }
-    }
+    
 }

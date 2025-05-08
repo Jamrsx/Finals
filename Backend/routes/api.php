@@ -15,9 +15,9 @@ Route::post('/coordinator/login', [CoordinatorController::class, 'loginCoordinat
 
 Route::post('/students', [CoordinatorController::class, 'storeStudent']);
 Route::put('/student/{id}', [CoordinatorController::class, 'updateStudent']);
-Route::delete('/student/{id}', [CoordinatorController::class, 'deleteStudent']);
+Route::delete('/student/{id}', [CoordinatorController::class, 'archiveStudent']);
 Route::get('/showStudents', [CoordinatorController::class, 'getAllStudents']);
-Route::delete('/students/archive-all', [CoordinatorController::class, 'deleteAllStudents']);
+Route::delete('/students/archive-all', [CoordinatorController::class, 'archiveAllStudents']);
 Route::get('/restore-student/{id}', [CoordinatorController::class, 'restoreStudent']);
 Route::get('/restore-all-students', [CoordinatorController::class, 'restoreAllStudents']);
 
@@ -30,6 +30,7 @@ Route::put('/UpdateTrack/{id}', [CoordinatorController::class, 'updateTrack']);
 Route::delete('/DeleteTrack/{id}', [CoordinatorController::class, 'deleteTrack']);
 
 Route::post('/instructors', [CoordinatorController::class, 'addInstructor']);
+Route::get('/ShowInstructor', [CoordinatorController::class, 'showInstructors']);
 Route::get('/ShowInstructor/{id}', [CoordinatorController::class, 'showInstructorById']);
 Route::put('/UpdateInstructor/{id}', [CoordinatorController::class, 'updateInstructor']);
 Route::delete('/DeleteInstructor/{id}', [CoordinatorController::class, 'deleteInstructor']);

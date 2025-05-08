@@ -60,50 +60,57 @@ function Login() {
   return (
     <div className="login-container">
       <div className="login-box">
-        <div className="login-header">
-          <img 
-            src="/img/occlogo.png" 
-            alt="Opol Community College Logo"
-            className="login-logo"
-          />
-          <h2>Coordinator Login</h2>
-          <p>Enter your credentials to access your account</p>
+        <div className="login-content">
+          <div className="logo-section">
+            <img 
+              src="/img/occlogo.png" 
+              alt="Opol Community College Logo"
+              className="login-logo"
+            />
+          </div>
+          
+          <div className="form-section">
+            <div className="login-header">
+              <h2>Coordinator Login</h2>
+              <p>Enter your credentials to access your account</p>
+            </div>
+
+            <form onSubmit={handleLogin} className="login-form">
+              <div className="input-group">
+                <FiUser className="input-icon" />
+                <input
+                  type="text"
+                  placeholder="Coordinator ID"
+                  value={coordinatorId}
+                  onChange={(e) => setCoordinatorId(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="input-group">
+                <FiLock className="input-icon" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button 
+                  type="button" 
+                  className="password-toggle"
+                  onClick={togglePasswordVisibility}
+                >
+                  {showPassword ? <FiEyeOff /> : <FiEye />}
+                </button>
+              </div>
+
+              <button type="submit" className="login-button" disabled={isLoading}>
+                {isLoading ? 'Logging in...' : 'Login'}
+              </button>
+            </form>
+          </div>
         </div>
-
-        <form onSubmit={handleLogin} className="login-form">
-          <div className="input-group">
-            <FiUser className="input-icon" />
-            <input
-              type="text"
-              placeholder="Coordinator ID"
-              value={coordinatorId}
-              onChange={(e) => setCoordinatorId(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="input-group">
-            <FiLock className="input-icon" />
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <button 
-              type="button" 
-              className="password-toggle"
-              onClick={togglePasswordVisibility}
-            >
-              {showPassword ? <FiEyeOff /> : <FiEye />}
-            </button>
-          </div>
-
-          <button type="submit" className="login-button" disabled={isLoading}>
-            {isLoading ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
       </div>
     </div>
   );

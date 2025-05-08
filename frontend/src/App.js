@@ -4,6 +4,7 @@ import Login from './Coordinator/Login';  // Login component
 import Dashboard from './Coordinator/Dashboard';  // Dashboard component
 import Track from './Coordinator/Track'; 
 import Student from './Coordinator/Student'; 
+import Instructor from './Coordinator/Instructor';
 import StudentArchive from './Coordinator/StudentArchive';
 import { ThemeProvider } from './context/ThemeContext';
 import './Coordinator/css/theme.css';
@@ -18,6 +19,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/track" element={<Track/>} />
           <Route path="/students" element={<Student/>} />
+          <Route path="/instructors" element={<Instructor/>} />
           <Route path="/student-archive" element={<StudentArchive/>} />
         </Routes>
       </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiMenu, FiHome, FiBarChart2, FiUsers, FiLogOut, FiArchive } from 'react-icons/fi';
+import { FiMenu, FiHome, FiBarChart2, FiUsers, FiLogOut, FiArchive, FiUser } from 'react-icons/fi';
 import Swal from 'sweetalert2';
 
 const Sidebar = () => {
@@ -51,7 +51,7 @@ const Sidebar = () => {
 
   const sidebarStyle = {
     width: isCollapsed ? '60px' : '200px',
-    height: 'auto',
+    height: '100vh',
     backgroundColor: '#2563eb',
     color: 'white',
     padding: '20px 20px',
@@ -60,6 +60,10 @@ const Sidebar = () => {
     flexDirection: 'column',
     alignItems: isCollapsed ? 'center' : 'flex-start',
     transition: 'width 0.3s',
+    position: 'fixed',
+    left: 0,
+    top: 0,
+    overflowY: 'auto'
   } 
 
   const headingStyle = {
@@ -89,6 +93,7 @@ const Sidebar = () => {
     transition: 'background 0.3s',
     whiteSpace: 'nowrap',
     justifyContent: isCollapsed ? 'center' : 'flex-start',
+    marginBottom: '8px'
   });
 
   const logoutStyle = {
@@ -109,7 +114,6 @@ const Sidebar = () => {
           cursor: 'pointer',
           fontSize: '24px',
           textAlign: 'center',
-          
         }}
       >
         <FiMenu />
@@ -151,21 +155,21 @@ const Sidebar = () => {
         style={buttonStyle(3)}
         onMouseEnter={() => setHoveredButton(3)}
         onMouseLeave={() => setHoveredButton(null)}
+        onClick={() => navigate('/instructors')}
+      >
+        <FiUser />
+        {!isCollapsed && 'Instructors'}
+      </button>
+
+      <button
+        style={buttonStyle(4)}
+        onMouseEnter={() => setHoveredButton(4)}
+        onMouseLeave={() => setHoveredButton(null)}
         onClick={() => navigate('/student-archive')}
       >
         <FiArchive />
         {!isCollapsed && 'Archive'}
       </button>
-{/* 
-      <button
-        style={{ ...buttonStyle(4), ...logoutStyle }}
-        onMouseEnter={() => setHoveredButton(4)}
-        onMouseLeave={() => setHoveredButton(null)}
-        onClick={handleLogout}
-      >
-        <FiLogOut />
-        {!isCollapsed && 'Logout'}
-      </button> */}
     </div>
   );
 };
