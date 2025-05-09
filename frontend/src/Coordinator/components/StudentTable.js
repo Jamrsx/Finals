@@ -17,13 +17,7 @@ const StudentTable = ({
   showRestoreButton = false
 }) => {
   const handleAction = (student) => {
-    if (showRestoreButton) {
-      onDelete(student.student_id);
-    } else {
-      if (window.confirm('Are you sure you want to archive this student?')) {
-        onDelete(student.student_id);
-      }
-    }
+    onDelete(student.student_id);
   };
 
   return (

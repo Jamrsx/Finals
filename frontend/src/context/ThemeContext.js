@@ -16,9 +16,34 @@ export const ThemeProvider = ({ children }) => {
   useEffect(() => {
     // Update localStorage when theme changes
     localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+    
     // Update document class for global styling
     document.documentElement.classList.toggle('dark', isDarkMode);
+    
+    // Update meta theme-color for mobile browsers
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute(
+        'content',
+        isDarkMode ? '#1a1a1a' : '#ffffff'
+      );
+    }
   }, [isDarkMode]);
+
+  // Listen for system theme changes
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    const handleChange = (e) => {
+      // Only update if user hasn't set a preference
+      if (!localStorage.getItem('theme')) {
+        setIsDarkMode(e.matches);
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
 
   const toggleTheme = () => {
     setIsDarkMode(prev => !prev);

@@ -21,8 +21,13 @@
   color: #1e3a8a;
   height: 100vh;
   overflow-y: auto;
-  max-width: 1400px;
-  margin: 0 auto;
+  margin-left: 200px; /* Default margin when sidebar is expanded */
+  transition: margin-left 0.3s ease;
+}
+
+/* When sidebar is collapsed */
+.dashboard-container.sidebar-collapsed .dashboard-content {
+  margin-left: 60px; /* Margin when sidebar is collapsed */
 }
 
 /* Heading */

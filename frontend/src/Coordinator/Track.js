@@ -183,7 +183,7 @@ const Track = () => {
             ➕ Add New Track
           </button>
 
-          <table border="1" width="100%" cellPadding="10">
+          <table width="100%" cellPadding="10">
             <thead>
               <tr>
                 <th>Track ID</th>

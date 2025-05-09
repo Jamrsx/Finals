@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiMenu, FiHome, FiBarChart2, FiUsers, FiLogOut, FiArchive, FiUser } from 'react-icons/fi';
 import Swal from 'sweetalert2';
+import ThemeToggle from '../../components/ThemeToggle';
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -17,6 +18,15 @@ const Sidebar = () => {
   // Save collapse state to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('sidebarCollapsed', isCollapsed);
+    // Add or remove sidebar-collapsed class from dashboard container
+    const dashboardContainer = document.querySelector('.dashboard-container');
+    if (dashboardContainer) {
+      if (isCollapsed) {
+        dashboardContainer.classList.add('sidebar-collapsed');
+      } else {
+        dashboardContainer.classList.remove('sidebar-collapsed');
+      }
+    }
   }, [isCollapsed]);
 
   const handleLogout = () => {
@@ -62,9 +72,8 @@ const Sidebar = () => {
     transition: 'width 0.3s',
     position: 'fixed',
     left: 0,
-    top: 0,
-    overflowY: 'auto'
-  } 
+    top: 0
+  }
 
   const headingStyle = {
     marginBottom: '30px',
@@ -118,6 +127,17 @@ const Sidebar = () => {
       >
         <FiMenu />
       </button>
+
+      {/* Theme Toggle */}
+      <div style={{ 
+        width: '100%', 
+        marginBottom: '20px',
+        opacity: isCollapsed ? 0 : 1,
+        transition: 'opacity 0.3s',
+        display: isCollapsed ? 'none' : 'block'
+      }}>
+        <ThemeToggle />
+      </div>
 
       <h3 style={headingStyle}>Coordinator Panel</h3>
 

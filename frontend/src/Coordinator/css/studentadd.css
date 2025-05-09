@@ -46,7 +46,7 @@
   min-width: 1200px;
   border-collapse: collapse;
   margin-bottom: 20px;
-  background-color: white;
+  background-color: transparent !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   table-layout: auto;
 }
@@ -61,16 +61,17 @@
   overflow-wrap: anywhere;
   font-size: 0.97rem;
   max-width: 180px;
+  background-color: transparent !important;
 }
 
 .student-table th {
-  background-color: #f8f9fa;
+  background-color: transparent !important;
   font-weight: 600;
   color: #333;
 }
 
 .student-table tr:hover {
-  background-color: #f5f5f5;
+  background-color: transparent !important;
 }
 
 /* Remove or reduce min-widths for columns to allow wrapping and better fit */
@@ -413,4 +414,9 @@
   .student-form select {
     padding: 0.5rem;
   }
+}
+
+.dark .student-table {
+  border: 2px solid #fff !important;
+  border-radius: 8px;
 } 
