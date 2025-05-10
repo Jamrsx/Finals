@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use App\Models\Section;
+use App\Models\CoordinatorPreference;
+use Illuminate\Support\Facades\Validator;
 
 class CoordinatorController extends Controller
 {
@@ -644,5 +646,62 @@ class CoordinatorController extends Controller
         }
     }
 
-    
+    public function getPreferences($coordinatorId)
+    {
+        try {
+            $preferences = CoordinatorPreference::firstOrCreate(
+                ['coordinator_id' => $coordinatorId],
+                [
+                    'show_accepted_enrollments' => false,
+                    'show_rejected_enrollments' => false
+                ]
+            );
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $preferences
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to fetch preferences: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function updatePreferences(Request $request, $coordinatorId)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'show_accepted_enrollments' => 'required|boolean',
+                'show_rejected_enrollments' => 'required|boolean'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $validator->errors()
+                ], 422);
+            }
+
+            $preferences = CoordinatorPreference::updateOrCreate(
+                ['coordinator_id' => $coordinatorId],
+                [
+                    'show_accepted_enrollments' => $request->show_accepted_enrollments,
+                    'show_rejected_enrollments' => $request->show_rejected_enrollments
+                ]
+            );
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Preferences updated successfully',
+                'data' => $preferences
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to update preferences: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

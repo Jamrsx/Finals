@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiMenu, FiHome, FiBarChart2, FiUsers, FiLogOut, FiArchive, FiUser } from 'react-icons/fi';
+import { FiMenu, FiHome, FiBarChart2, FiUsers, FiLogOut, FiArchive, FiUser, FiClipboard } from 'react-icons/fi';
 import Swal from 'sweetalert2';
 import ThemeToggle from '../../components/ThemeToggle';
 
@@ -185,10 +185,30 @@ const Sidebar = () => {
         style={buttonStyle(4)}
         onMouseEnter={() => setHoveredButton(4)}
         onMouseLeave={() => setHoveredButton(null)}
+        onClick={() => navigate('/enrollments')}
+      >
+        <FiClipboard />
+        {!isCollapsed && 'Enrollments'}
+      </button>
+
+      <button
+        style={buttonStyle(5)}
+        onMouseEnter={() => setHoveredButton(5)}
+        onMouseLeave={() => setHoveredButton(null)}
         onClick={() => navigate('/student-archive')}
       >
         <FiArchive />
         {!isCollapsed && 'Archive'}
+      </button>
+
+      <button
+        style={{...buttonStyle(6), ...logoutStyle}}
+        onMouseEnter={() => setHoveredButton(6)}
+        onMouseLeave={() => setHoveredButton(null)}
+        onClick={handleLogout}
+      >
+        <FiLogOut />
+        {!isCollapsed && 'Logout'}
       </button>
     </div>
   );

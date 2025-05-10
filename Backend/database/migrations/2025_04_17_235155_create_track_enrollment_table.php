@@ -16,13 +16,13 @@ return new class extends Migration
             $table->string('student_id')->index();
             $table->integer('track_id');
             $table->string('track_name');
-            $table->string('status')->default('Pending'); 
+            $table->string('status')->default('pending'); 
             $table->timestamps();
 
             
             $table ->foreign('student_id')
                 ->references('student_id')
-                ->on('student_acc')
+                ->on('student_details')
                 ->onDelete('cascade')->onUpdate('cascade');
 
                 

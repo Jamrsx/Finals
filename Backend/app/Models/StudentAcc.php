@@ -15,13 +15,15 @@ class StudentAcc extends Model
     ];
 
     public function details() {
-        return $this->hasOne(StudentDetails::class, 'studentId', 'studentId');
+        return $this->hasOne(StudentDetails::class, 'student_id', 'student_id');
     }
 
     public function trackEnrollments() {
-        return $this->hasMany(trackEnrollment::class, 'studentId', 'studentId');
+        return $this->hasMany(trackEnrollment::class, 'student_id', 'student_id');
     }
-    
 
-
+    public function getFullNameAttribute()
+    {
+        return $this->details ? $this->details->full_name : null;
+    }
 }

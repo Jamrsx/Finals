@@ -6,6 +6,7 @@ import Track from './Coordinator/Track';
 import Student from './Coordinator/Student'; 
 import Instructor from './Coordinator/Instructor';
 import StudentArchive from './Coordinator/StudentArchive';
+import Enrollments from './Coordinator/Enrollements';
 import { ThemeProvider } from './context/ThemeContext';
 import './Coordinator/css/theme.css';
 
@@ -20,6 +21,7 @@ function App() {
           <Route path="/track" element={<Track/>} />
           <Route path="/students" element={<Student/>} />
           <Route path="/instructors" element={<Instructor/>} />
+          <Route path="/enrollments" element={<Enrollments/>} />
           <Route path="/student-archive" element={<StudentArchive/>} />
         </Routes>
       </div>
