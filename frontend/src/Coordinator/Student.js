@@ -71,7 +71,7 @@ const Student = () => {
             Course: section.Course || '',
             yearlevel: section.yearlevel || '',
             section: section.section || '',
-            Track: section.Track || '',
+            Track: student.accepted_track || section.Track || '',
             status: student.status || '',
             account_status: account.status || ''
           };

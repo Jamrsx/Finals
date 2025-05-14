@@ -41,6 +41,15 @@ const Enrollments = () => {
         }
     }, [navigate]);
 
+    // Polling: auto-refresh enrollments every 10 seconds
+    useEffect(() => {
+        if (loading || error) return;
+        const interval = setInterval(() => {
+            fetchEnrollments();
+        }, 20000); // 2seconds
+        return () => clearInterval(interval);
+    }, [loading, error]);
+
     useEffect(() => {
         localStorage.setItem('showAcceptedEnrollments', JSON.stringify(showAccepted));
     }, [showAccepted]);
@@ -98,7 +107,8 @@ const Enrollments = () => {
         const statusMap = {
             'pending': 'status-pending',
             'accepted': 'status-accepted',
-            'declined': 'status-declined'
+            'declined': 'status-declined',
+            'cancelled': 'status-cancelled',
         };
         return statusMap[status.toLowerCase()] || '';
     };
@@ -259,7 +269,7 @@ const Enrollments = () => {
 
     const pendingEnrollments = enrollments.filter(e => e.status === 'pending');
     const acceptedEnrollments = enrollments.filter(e => e.status === 'accepted');
-    const declinedEnrollments = enrollments.filter(e => e.status === 'declined');
+    const declinedEnrollments = enrollments.filter(e => e.status === 'declined' || e.status === 'cancelled');
 
     return (
         <AuthCheck>

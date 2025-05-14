@@ -3,9 +3,10 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AddCoordinator;
+use App\Http\Controllers\StudentController;
+use App\Http\Controllers\Student_enrollment;
 use App\Http\Controllers\CsvImportController;
 use App\Http\Controllers\CoordinatorController;
-use App\Http\Controllers\Student_enrollment;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -44,9 +45,12 @@ Route::get('/available-tracks', [Student_enrollment::class, 'getAvailableTracks'
 Route::post('/enroll-track', [Student_enrollment::class, 'enrollInTrack']);
 Route::get('/enrollment-status/{student_id}', [Student_enrollment::class, 'getEnrollmentStatus']);
 Route::put('/enrollments/{id}/{action}', [Student_enrollment::class, 'updateEnrollmentStatus']);
+Route::post('/cancel-enrollment', [Student_enrollment::class, 'cancelEnrollment']);
 
 // Coordinator Preferences Routes
 Route::get('/coordinator/{coordinatorId}/preferences', [CoordinatorController::class, 'getPreferences']);
 Route::put('/coordinator/{coordinatorId}/preferences', [CoordinatorController::class, 'updatePreferences']);
 
 
+// Student Or Mobile app routes
+Route::post('/login', [StudentController::class, 'login']);

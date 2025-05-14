@@ -117,7 +117,7 @@ class CoordinatorController extends Controller
             $showArchived = $request->input('show_archived', false);
 
             // Build the query
-            $query = StudentDetails::with(['account', 'section'])
+            $query = StudentDetails::with(['account', 'section', 'acceptedTrackEnrollment'])
                 ->orderBy('created_at', 'desc');
 
             // Add search conditions if search term is provided
@@ -162,6 +162,7 @@ class CoordinatorController extends Controller
                     'account' => $student->account ? [
                         'status' => $student->account->status,
                     ] : null,
+                    'accepted_track' => $student->acceptedTrackEnrollment ? $student->acceptedTrackEnrollment->track_name : null,
                 ];
             });
 

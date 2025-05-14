@@ -205,12 +205,13 @@
   font-size: 14px;
 }
 
-/* Import Section */
+/* Import Section Styles */
 .import-section {
-  margin-bottom: 20px;
+  background: #fff;
   padding: 20px;
-  background-color: #f8f9fa;
-  border-radius: 4px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
 }
 
 .import-section h3 {
@@ -222,15 +223,17 @@
   display: flex;
   gap: 10px;
   align-items: center;
+  margin-bottom: 15px;
 }
 
 .csv-form input[type="file"] {
   padding: 8px;
   border: 1px solid #ddd;
   border-radius: 4px;
+  flex: 1;
 }
 
-/* Progress Bar */
+/* Progress Bar Styles */
 .import-progress {
   margin-top: 15px;
 }
@@ -241,6 +244,7 @@
   background-color: #f0f0f0;
   border-radius: 10px;
   overflow: hidden;
+  margin-bottom: 8px;
 }
 
 .progress-fill {
@@ -252,12 +256,15 @@
 .progress-info {
   display: flex;
   justify-content: space-between;
-  margin-top: 5px;
-  font-size: 14px;
   color: #666;
+  font-size: 14px;
 }
 
-/* Import Status */
+.elapsed-time {
+  color: #888;
+}
+
+/* Import Status Styles */
 .import-status {
   margin-top: 15px;
   padding: 10px;
@@ -265,13 +272,15 @@
 }
 
 .import-status.success {
-  background-color: #dff0d8;
-  color: #3c763d;
+  background-color: #e8f5e9;
+  border: 1px solid #c8e6c9;
+  color: #2e7d32;
 }
 
 .import-status.error {
-  background-color: #f2dede;
-  color: #a94442;
+  background-color: #ffebee;
+  border: 1px solid #ffcdd2;
+  color: #c62828;
 }
 
 .import-errors {
@@ -279,7 +288,8 @@
 }
 
 .import-errors h4 {
-  margin-bottom: 5px;
+  margin-bottom: 8px;
+  color: #c62828;
 }
 
 .import-errors ul {
@@ -289,34 +299,53 @@
 
 .import-errors li {
   margin-bottom: 5px;
-  padding-left: 20px;
-  position: relative;
+  color: #c62828;
 }
 
-.import-errors li:before {
-  content: "•";
-  position: absolute;
-  left: 0;
-  color: #a94442;
-}
-
-/* Error Message */
-.error-message {
-  padding: 10px;
-  margin-bottom: 20px;
-  background-color: #f2dede;
-  color: #a94442;
+/* Button Styles */
+.btn {
+  padding: 8px 16px;
+  border: none;
   border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: inline-block;
+  text-align: center;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.btn-primary {
+  background-color: #1976d2 !important;
+  color: rgb(255, 255, 255) !important;
+}
+
+.btn-primary:hover {
+  background-color: #1565c0 !important;
+}
+
+.btn-primary:disabled {
+  background-color: #90caf9 !important;
+  cursor: not-allowed;
 }
 
 .btn-danger {
-  background-color: var(--danger-color);
-  color: white;
+  background-color: #d32f2f !important;
+  color: white !important;
 }
 
 .btn-danger:hover {
-  background-color: #dc2626;
-  transform: translateY(-1px);
+  background-color: #c62828 !important;
+}
+
+/* Import Section Button Specific Styles */
+.import-section .btn {
+  min-width: 100px;
+}
+
+.csv-form .btn {
+  white-space: nowrap;
 }
 
 /* Modal Styles */

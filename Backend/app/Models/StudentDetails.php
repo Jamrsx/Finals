@@ -29,6 +29,11 @@ class StudentDetails extends Model
         return $this->hasOne(Section::class, 'student_id', 'student_id');
     }
 
+    public function acceptedTrackEnrollment() {
+        return $this->hasOne(\App\Models\trackEnrollment::class, 'student_id', 'student_id')
+            ->where('status', 'accepted');
+    }
+
     public function getFullNameAttribute()
     {
         $full = $this->fname . ' ' . ($this->mname ? $this->mname . ' ' : '') . $this->lname;

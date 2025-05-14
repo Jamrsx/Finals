@@ -115,6 +115,11 @@
     color: var(--error-text);
 }
 
+.status-cancelled {
+    background-color: #fff8c5;
+    color: #9a6700;
+}
+
 .action-buttons {
     display: flex;
     gap: 8px;

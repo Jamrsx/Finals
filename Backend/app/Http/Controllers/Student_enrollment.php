@@ -143,4 +143,56 @@ class Student_enrollment extends Controller
             'data' => $enrollment
         ]);
     }
+
+    // Cancel enrollment request
+    public function cancelEnrollment(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'id' => 'required|integer',
+                'student_id' => 'required|string'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Please provide valid enrollment ID and student ID'
+                ], 422);
+            }
+
+            // Find the enrollment
+            $enrollment = trackEnrollment::where('id', $request->id)
+                ->where('student_id', $request->student_id)
+                ->first();
+
+            if (!$enrollment) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Enrollment not found or you are not authorized to cancel this enrollment'
+                ], 404);
+            }
+
+            if ($enrollment->status !== 'pending') {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Only pending enrollments can be cancelled'
+                ], 400);
+            }
+
+            $enrollment->status = 'cancelled';
+            $enrollment->save();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Enrollment request cancelled successfully',
+                'data' => $enrollment
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An error occurred while cancelling the enrollment'
+            ], 500);
+        }
+    }
 }

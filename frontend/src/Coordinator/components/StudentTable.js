@@ -20,6 +20,8 @@ const StudentTable = ({
     onDelete(student.student_id);
   };
 
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
   return (
     <div className="table-container">
       <div className="table-controls">
@@ -45,98 +47,90 @@ const StudentTable = ({
         </div>
       </div>
 
-      <table className="student-table">
-        <thead>
-          <tr>
-            <th>Student ID</th>
-            <th>Last Name</th>
-            <th>First Name</th>
-            <th>Middle Name</th>
-            <th>Suffix</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Gender</th>
-            <th>Course</th>
-            <th>Year Level</th>
-            <th>Section</th>
-            <th>Track</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {isLoading ? (
-            <tr>
-              <td colSpan="13" style={{ textAlign: 'center', padding: '2rem' }}>
-                Loading...
-              </td>
-            </tr>
-          ) : students.length > 0 ? (
-            students.map((student) => (
-              <tr key={student.student_id} className={student.status === '0' ? 'archived' : ''}>
-                <td>{student.student_id}</td>
-                <td>{student.lname}</td>
-                <td>{student.fname}</td>
-                <td>{student.mname}</td>
-                <td>{student.suffix}</td>
-                <td>{student.email}</td>
-                <td>{student.Phone_number}</td>
-                <td>{student.gender}</td>
-                <td>{student.Course}</td>
-                <td>{student.yearlevel}</td>
-                <td>{student.section}</td>
-                <td>{student.Track}</td>
-                <td>
-                  <div className="action-buttons">
-                    {!showRestoreButton && (
-                      <button
-                        className="action-btn update"
-                        onClick={() => onUpdate(student)}
-                        title="Update"
-                      >
-                        <i className="fas fa-edit"></i>
-                      </button>
-                    )}
-                    <button
-                      className={`action-btn ${showRestoreButton ? 'restore' : 'delete'}`}
-                      onClick={() => handleAction(student)}
-                      title={showRestoreButton ? 'Restore' : 'Archive'}
-                    >
-                      <i className={`fas fa-${showRestoreButton ? 'undo' : 'archive'}`}></i>
-                    </button>
-                  </div>
-                </td>
+      {isLoading ? (
+        <div className="loading">Loading...</div>
+      ) : (
+        <>
+          <table className="student-table">
+            <thead>
+              <tr>
+                <th>Student ID</th>
+                <th>Last Name</th>
+                <th>First Name</th>
+                <th>Middle Name</th>
+                <th>Suffix</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Gender</th>
+                <th>Course</th>
+                <th>Year Level</th>
+                <th>Section</th>
+                <th>Track</th>
+                <th>Actions</th>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="13" style={{ textAlign: 'center', padding: '2rem' }}>
-                {searchTerm ? 'No students found matching your search.' : 'No students found.'}
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+            </thead>
+            <tbody>
+              {students.map((student) => (
+                <tr key={student.student_id} className={student.status === '0' ? 'archived' : ''}>
+                  <td>{student.student_id}</td>
+                  <td>{student.lname}</td>
+                  <td>{student.fname}</td>
+                  <td>{student.mname}</td>
+                  <td>{student.suffix}</td>
+                  <td>{student.email}</td>
+                  <td>{student.Phone_number}</td>
+                  <td>{student.gender}</td>
+                  <td>{student.Course}</td>
+                  <td>{student.yearlevel}</td>
+                  <td>{student.section}</td>
+                  <td>{student.Track}</td>
+                  <td>
+                    <div className="action-buttons">
+                      {!showRestoreButton && (
+                        <button
+                          className="action-btn update"
+                          onClick={() => onUpdate(student)}
+                          title="Update"
+                        >
+                          <i className="fas fa-edit"></i>
+                        </button>
+                      )}
+                      <button
+                        className={`action-btn ${showRestoreButton ? 'restore' : 'delete'}`}
+                        onClick={() => handleAction(student)}
+                        title={showRestoreButton ? 'Restore' : 'Archive'}
+                      >
+                        <i className={`fas fa-${showRestoreButton ? 'undo' : 'archive'}`}></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
 
-      <div className="pagination" style={{ justifyContent: 'flex-start' }}>
-        <button
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1 || isLoading}
-          className="pagination-btn"
-          style={{ marginRight: '10px' }}
-        >
-          Previous
-        </button>
-        <span className="page-info" style={{ margin: '0 15px' }}>
-          Page {currentPage} of {Math.ceil(totalItems / itemsPerPage)}
-        </span>
-        <button
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage >= Math.ceil(totalItems / itemsPerPage) || isLoading}
-          className="pagination-btn"
-        >
-          Next
-        </button>
-      </div>
+          <div className="pagination" style={{ justifyContent: 'flex-start' }}>
+            <button
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage === 1 || isLoading}
+              className="pagination-btn"
+              style={{ marginRight: '10px' }}
+            >
+              Previous
+            </button>
+            <span className="page-info" style={{ margin: '0 15px' }}>
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={currentPage === totalPages || isLoading}
+              className="pagination-btn"
+            >
+              Next
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 };
