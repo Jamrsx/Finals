@@ -14,8 +14,7 @@ import MainLayout from './components/MainLayout';
 import { getUserData } from '../utils/userStorage';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { tracksStyles } from './design/TracksDesign';
-
-const API_URL = 'http://192.168.193.143:8000/api';
+import API_URL from '../config/api';
 
 const TracksScreen = () => {
   const [tracks, setTracks] = useState([]);

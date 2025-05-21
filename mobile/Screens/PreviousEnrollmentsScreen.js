@@ -15,8 +15,7 @@ import { getUserData } from '../utils/userStorage';
 import { previousEnrollmentsStyles } from './design/PreviousEnrollmentsDesign';
 import { useNavigation } from '@react-navigation/native';
 import { refreshApp } from '../utils/refreshApp';
-
-const API_URL = 'http://192.168.193.143:8000/api';
+import API_URL from '../config/api';
 
 const PreviousEnrollmentsScreen = () => {
   const navigation = useNavigation();
@@ -25,24 +24,34 @@ const PreviousEnrollmentsScreen = () => {
   const [error, setError] = useState(null);
   const [reenrolling, setReenrolling] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [userData, setUserData] = useState(null);
 
   useEffect(() => {
-    fetchEnrollments();
+    loadUserDataAndEnrollments();
   }, []);
 
-  const fetchEnrollments = async () => {
+  const loadUserDataAndEnrollments = async () => {
+    try {
+      const data = await getUserData();
+      setUserData(data);
+      if (data?.student_id) {
+        await fetchEnrollments(data.student_id);
+      } else {
+        setError('User data not found. Please log in again.');
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+      setError('Failed to load user data');
+    }
+  };
+
+  const fetchEnrollments = async (studentId) => {
     try {
       setLoading(true);
-      const userData = await getUserData();
       
-      if (!userData || !userData.student_id) {
-        setError('Please log in to view enrollments');
-        return;
-      }
-
       const response = await axios.get(`${API_URL}/enrollments`, {
         params: {
-          student_id: userData.student_id
+          student_id: studentId
         },
         headers: {
           'Accept': 'application/json',
@@ -55,7 +64,7 @@ const PreviousEnrollmentsScreen = () => {
         const declinedEnrollments = response.data.data.filter(
           enrollment => 
             enrollment.status === 'declined' &&
-            enrollment.student_id === userData.student_id
+            enrollment.student_id === studentId // Ensure it matches the current student
         );
         setEnrollments(declinedEnrollments);
       } else {
@@ -72,8 +81,12 @@ const PreviousEnrollmentsScreen = () => {
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
-    refreshApp(navigation);
-  }, [navigation]);
+    if (userData?.student_id) {
+      fetchEnrollments(userData.student_id);
+    } else {
+      loadUserDataAndEnrollments();
+    }
+  }, [userData]);
 
   const handleReenroll = async (track) => {
     try {

@@ -15,8 +15,7 @@ import { getUserData } from '../utils/userStorage';
 import { enrollmentsStyles } from './design/EnrollmentsDesign';
 import { useNavigation } from '@react-navigation/native';
 import { refreshApp } from '../utils/refreshApp';
-
-const API_URL = 'http://192.168.193.143:8000/api';
+import API_URL from '../config/api';
 
 const EnrollmentsScreen = () => {
   const navigation = useNavigation();

@@ -33,14 +33,14 @@ const Track = () => {
   const fetchTracks = async () => {
     try {
       const res = await axios.get('http://localhost:8000/api/ShowTracks');
-      setTracks(res.data.tracks || res.data); // adjust depending on your actual API response
+      setTracks(res.data.tracks || res.data); 
     } catch (err) {
       console.error('Error fetching tracks:', err);
     }
   };
 
   const openAddModal = () => {
-    setTrackId(''); // Clear track ID for a new track
+    setTrackId(''); 
     setTrackName('');
     setDescription('');
     setIsEdit(false);
@@ -48,7 +48,7 @@ const Track = () => {
   };
 
   const openEditModal = (track) => {
-    setTrackId(track.track_id); // Use the track_id from the selected track
+    setTrackId(track.track_id);
     setTrackName(track.track_name);
     setDescription(track.description);
     setCurrentTrack(track);
@@ -108,7 +108,7 @@ const Track = () => {
     e.preventDefault();
 
     // Validate inputs
-    if (!trackId.trim() || !trackName.trim() || !description.trim()) {
+    if (!trackId || !trackName.trim() || !description.trim()) {
       Swal.fire({
         title: 'Error!',
         text: 'Please fill in all fields',

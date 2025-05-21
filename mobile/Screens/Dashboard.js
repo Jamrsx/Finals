@@ -14,8 +14,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { dashboardStyles } from './design/DashboardDesign';
 import { useNavigation } from '@react-navigation/native';
 import { refreshApp } from '../utils/refreshApp';
-
-const API_URL = 'http://192.168.193.143:8000/api';
+import API_URL from '../config/api';
 
 const Dashboard = () => {
   const [userData, setUserData] = useState(null);
@@ -64,12 +63,12 @@ const Dashboard = () => {
       });
 
       if (response.data.status === 'success') {
-        const enrollments = response.data.data;
+        const userEnrollments = response.data.data.filter(e => e.student_id === studentId);
         const stats = {
-          active: enrollments.filter(e => e.status === 'active').length,
-          pending: enrollments.filter(e => e.status === 'pending').length,
-          rejected: enrollments.filter(e => e.status === 'declined').length,
-          cancelled: enrollments.filter(e => e.status === 'cancelled').length
+          active: userEnrollments.filter(e => e.status === 'active').length,
+          pending: userEnrollments.filter(e => e.status === 'pending').length,
+          rejected: userEnrollments.filter(e => e.status === 'declined').length,
+          cancelled: userEnrollments.filter(e => e.status === 'cancelled').length
         };
         setEnrollmentStats(stats);
       }
@@ -98,7 +97,6 @@ const Dashboard = () => {
         );
 
         if (currentEnrollments.length > 0) {
-          // Get track details
           const tracksResponse = await axios.get(`${API_URL}/available-tracks`, {
             headers: {
               'Accept': 'application/json',

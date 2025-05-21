@@ -31,7 +31,7 @@ const Dashboard = () => {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
 
-  const apiUrl = 'http://localhost:8000/api'; // Hardcoded API URL like in Student component
+  const apiUrl = 'http://localhost:8000/api'; 
 
   useEffect(() => {
     fetchStudents();

@@ -41,12 +41,12 @@ const Enrollments = () => {
         }
     }, [navigate]);
 
-    // Polling: auto-refresh enrollments every 10 seconds
+    // Polling: auto-refresh enrollments every 2s seconds
     useEffect(() => {
         if (loading || error) return;
         const interval = setInterval(() => {
             fetchEnrollments();
-        }, 20000); // 2seconds
+        }, 1500); // 2seconds
         return () => clearInterval(interval);
     }, [loading, error]);
 

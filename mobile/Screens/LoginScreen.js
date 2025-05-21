@@ -18,9 +18,9 @@ import { useNavigation } from '@react-navigation/native';
 import { storeUserData, getUserData } from '../utils/userStorage';
 import { loginStyles } from './design/LoginDesign';
 import { refreshApp } from '../utils/refreshApp';
+import API_URL from '../config/api';
 
 const { width } = Dimensions.get('window');
-const API_URL = 'http://192.168.193.143:8000/api';
 
 const LoginScreen = () => {
   const navigation = useNavigation();
@@ -138,7 +138,12 @@ const LoginScreen = () => {
       >
         <View style={loginStyles.logoContainer}>
           <View style={loginStyles.logoCircle}>
-            <Text style={loginStyles.logoText}>OCC</Text>
+            <Image 
+              source={require('./assets/logo.png')}
+              style={loginStyles.logo}
+              onError={(error) => console.log('Image loading error:', error.nativeEvent.error)}
+              onLoad={() => console.log('Image loaded successfully')}
+            />
           </View>
           <Text style={loginStyles.welcomeText}>Welcome Back!</Text>
           <Text style={loginStyles.subtitleText}>Sign in to continue</Text>
